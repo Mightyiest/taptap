@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/icon.png" alt="Taptap Icon" width="128" height="128" />
+
 # ✦ T A P T A P ✦
 
 ### *Bespoke Spatial Surround Sound Companion for Mechanical Keyboards & Mice*
