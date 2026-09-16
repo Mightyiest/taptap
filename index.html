@@ -196,6 +196,71 @@
           </div>
         </div>
 
+        <!-- Big Cute Typing Test Mini-Game -->
+        <div class="demo-typing-card" id="demoTypingCard">
+          <div class="typing-header-bar">
+            <div class="typing-stats-wrap">
+              <span class="game-badge-pill">🎮 Typing Arena</span>
+              <span class="game-stat-tag stat-highlight" id="demoStatWpm">0 WPM</span>
+              <span class="game-stat-tag" id="demoStatAcc">100% ACC</span>
+              <span class="game-stat-tag" id="demoStatTime">Ready</span>
+            </div>
+            <div class="typing-actions-wrap">
+              <button class="btn-game-action btn-game-stop" id="demoBtnStop" title="Stop Test">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                <span>Stop</span>
+              </button>
+              <button class="btn-game-action" id="demoBtnNewSentence" title="New Sentence">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                <span>New Quote</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Big Stream Box -->
+          <div class="big-stream-arena" id="demoStreamBox">
+            <!-- Click to start overlay -->
+            <div class="game-prompt-overlay" id="demoClickToStart">
+              <span class="start-button-pill">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                Click here to start typing test!
+              </span>
+            </div>
+
+            <!-- 3.. 2.. 1.. Countdown Overlay -->
+            <div class="big-countdown-overlay" id="demoCountdownOverlay">
+              <span class="big-countdown-digit" id="demoCountdownNum">3</span>
+            </div>
+
+            <!-- Big Stream text -->
+            <div class="big-stream-text" id="demoStreamText"></div>
+
+            <!-- Game Result Overlay -->
+            <div class="big-results-overlay" id="demoResultsOverlay">
+              <span class="results-badge-pill">🎉 Test Completed!</span>
+              <div class="results-grid-box">
+                <div class="result-item-col">
+                  <span class="result-item-val" id="demoResWpm">0</span>
+                  <span class="result-lbl">WPM</span>
+                </div>
+                <div class="result-item-col">
+                  <span class="result-item-val" id="demoResAcc">100%</span>
+                  <span class="result-lbl">Accuracy</span>
+                </div>
+                <div class="result-item-col">
+                  <span class="result-item-val" id="demoResTime">0s</span>
+                  <span class="result-lbl">Time</span>
+                </div>
+              </div>
+              <button class="btn-try-again" id="demoBtnTryAgain">
+                <span>Play Again (New Quote)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Interactive ANSI Keyboard Matrix -->
         <div class="demo-matrix-card">
           <div class="demo-matrix-header">

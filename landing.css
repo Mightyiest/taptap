@@ -624,6 +624,362 @@ h1, h2, h3, h4, .serif-heading {
   box-shadow: 0 4px 12px var(--accent-burgundy-glow);
 }
 
+/* ==========================================================================
+   BIG CUTE TYPING TEST MINI-GAME
+   ========================================================================== */
+.demo-typing-card {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.typing-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.typing-stats-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.game-badge-pill {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-burgundy);
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 8px var(--accent-burgundy-glow);
+}
+
+.game-stat-tag {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  color: var(--text-main);
+}
+
+.game-stat-tag.stat-highlight {
+  color: var(--accent-burgundy);
+  border-color: var(--accent-burgundy);
+}
+
+.typing-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-game-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-main);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-game-action:hover {
+  border-color: var(--accent-burgundy);
+  background: var(--bg-card-hover);
+  transform: translateY(-1px);
+}
+
+.btn-game-stop {
+  color: #d32f2f;
+}
+
+.btn-game-stop:hover {
+  background: #ffebee;
+  border-color: #d32f2f;
+}
+
+[data-theme="dark"] .btn-game-stop:hover {
+  background: #2b1114;
+}
+
+/* Big Stream Box */
+.big-stream-arena {
+  position: relative;
+  min-height: 140px;
+  background: var(--bg-site);
+  border: 2px dashed var(--border-main);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: text;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.big-stream-arena:hover, .big-stream-arena.focused {
+  border-color: var(--accent-burgundy);
+  background: var(--bg-card);
+}
+
+.big-stream-text {
+  font-family: var(--font-heading);
+  font-size: clamp(1.2rem, 2.8vw, 1.7rem);
+  line-height: 1.8;
+  font-weight: 600;
+  color: var(--text-subtle);
+  word-break: break-word;
+  user-select: none;
+  text-align: left;
+  width: 100%;
+}
+
+.big-stream-text .ch {
+  position: relative;
+  transition: color 0.1s ease;
+  border-radius: 4px;
+}
+
+.big-stream-text .ch.current {
+  color: var(--text-main);
+  background: var(--accent-gold-soft);
+  border-bottom: 3px solid var(--accent-burgundy);
+  font-weight: 800;
+  padding: 0 2px;
+  animation: cutePulse 1.2s infinite ease-in-out;
+}
+
+@keyframes cutePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+.big-stream-text .ch.correct {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+[data-theme="dark"] .big-stream-text .ch.correct {
+  color: #66bb6a;
+}
+
+.big-stream-text .ch.incorrect {
+  color: #d32f2f;
+  background: rgba(211, 47, 47, 0.15);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* Click to Start Overlay */
+.game-prompt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(244, 240, 230, 0.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 5;
+}
+
+[data-theme="dark"] .game-prompt-overlay {
+  background: rgba(19, 10, 13, 0.88);
+}
+
+.game-prompt-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.start-button-pill {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-burgundy);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px var(--accent-burgundy-glow);
+  transform: translateY(0);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.start-button-pill:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px var(--accent-burgundy-glow);
+}
+
+/* Big 3.. 2.. 1.. Countdown Overlay */
+.big-countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(244, 240, 230, 0.94);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 6;
+}
+
+[data-theme="dark"] .big-countdown-overlay {
+  background: rgba(19, 10, 13, 0.94);
+}
+
+.big-countdown-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.big-countdown-digit {
+  font-family: var(--font-heading);
+  font-size: 4.8rem;
+  font-weight: 900;
+  color: var(--accent-burgundy);
+  line-height: 1;
+}
+
+.countdown-pop {
+  animation: countdownPopAnim 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes countdownPopAnim {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Big Results Card Overlay */
+.big-results-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(244, 240, 230, 0.96);
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 16px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 7;
+}
+
+[data-theme="dark"] .big-results-overlay {
+  background: rgba(19, 10, 13, 0.96);
+}
+
+.big-results-overlay.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.results-badge-pill {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 4px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-gold);
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.results-grid-box {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.result-item-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.result-item-val {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--accent-burgundy);
+  line-height: 1.1;
+}
+
+.result-item-lbl {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.btn-try-again {
+  padding: 10px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-burgundy);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px var(--accent-burgundy-glow);
+  transition: all var(--transition-fast);
+}
+
+.btn-try-again:hover {
+  background: var(--accent-burgundy-hover);
+  transform: translateY(-2px);
+}
+
 /* Keyboard Matrix & Mouse Tester Tabs */
 .demo-matrix-card {
   background: var(--bg-card-subtle);

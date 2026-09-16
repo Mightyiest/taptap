@@ -327,4 +327,257 @@ document.addEventListener('DOMContentLoaded', () => {
       if (audio) audio.setVerticalElevation(chkElevation.checked);
     });
   }
+
+  // --- 7. BIG CUTE TYPING TEST MINI-GAME ---
+  const typingQuotes = [
+    "tactile switches deliver crisp acoustic pops and joyful feedback with every stroke",
+    "smooth linear pom stems glide like butter across custom gasket mounts",
+    "binaural spatial sound gives rich three dimensional depth to your desktop",
+    "cute mechanical keyboards make daily typing playful cozy and relaxing",
+    "the quick brown fox jumps over the lazy dog with creamy acoustic thocks",
+    "effortless typing rhythm creates a rewarding and deeply focused flow state"
+  ];
+
+  let currentQuote = "";
+  let charIndex = 0;
+  let correctKeystrokes = 0;
+  let totalKeystrokes = 0;
+  let gameStartTime = null;
+  let gameActive = false;
+  let isCountingDown = false;
+  let countdownTimer = null;
+  let timerInterval = null;
+  let charSpans = [];
+
+  const demoStatWpm = document.getElementById('demoStatWpm');
+  const demoStatAcc = document.getElementById('demoStatAcc');
+  const demoStatTime = document.getElementById('demoStatTime');
+  const demoBtnStop = document.getElementById('demoBtnStop');
+  const demoBtnNewSentence = document.getElementById('demoBtnNewSentence');
+  const demoStreamBox = document.getElementById('demoStreamBox');
+  const demoClickToStart = document.getElementById('demoClickToStart');
+  const demoCountdownOverlay = document.getElementById('demoCountdownOverlay');
+  const demoCountdownNum = document.getElementById('demoCountdownNum');
+  const demoStreamText = document.getElementById('demoStreamText');
+  const demoResultsOverlay = document.getElementById('demoResultsOverlay');
+  const demoResWpm = document.getElementById('demoResWpm');
+  const demoResAcc = document.getElementById('demoResAcc');
+  const demoResTime = document.getElementById('demoResTime');
+  const demoBtnTryAgain = document.getElementById('demoBtnTryAgain');
+
+  function setGameState(state) {
+    demoClickToStart?.classList.toggle('hidden', state !== 'idle');
+    demoCountdownOverlay?.classList.toggle('show', state === 'countdown');
+    demoResultsOverlay?.classList.toggle('show', state === 'finished');
+    demoStreamBox?.classList.toggle('focused', state === 'playing');
+  }
+
+  function clearGameTimers() {
+    clearTimeout(countdownTimer);
+    clearInterval(timerInterval);
+  }
+
+  function initTypingTest() {
+    clearGameTimers();
+    setGameState('idle');
+
+    gameActive = false;
+    isCountingDown = false;
+    gameStartTime = null;
+    charIndex = 0;
+    correctKeystrokes = 0;
+    totalKeystrokes = 0;
+    if (demoStatWpm) demoStatWpm.textContent = '0 WPM';
+    if (demoStatAcc) demoStatAcc.textContent = '100% ACC';
+    if (demoStatTime) demoStatTime.textContent = 'Ready';
+
+    currentQuote = typingQuotes[Math.floor(Math.random() * typingQuotes.length)];
+    if (demoStreamText) {
+      demoStreamText.innerHTML = Array.from(currentQuote, (ch, i) =>
+        `<span class="ch${i === 0 ? ' current' : ''}">${ch}</span>`
+      ).join('');
+      charSpans = demoStreamText.children;
+    }
+  }
+
+  function stopTypingTest() {
+    clearGameTimers();
+    gameActive = false;
+    isCountingDown = false;
+    gameStartTime = null;
+    charIndex = 0;
+    correctKeystrokes = 0;
+    totalKeystrokes = 0;
+    if (demoStatWpm) demoStatWpm.textContent = '0 WPM';
+    if (demoStatAcc) demoStatAcc.textContent = '100% ACC';
+    if (demoStatTime) demoStatTime.textContent = 'Ready';
+    setGameState('idle');
+
+    if (charSpans && charSpans.length) {
+      for (let i = 0; i < charSpans.length; i++) {
+        charSpans[i].className = 'ch' + (i === 0 ? ' current' : '');
+      }
+    }
+  }
+
+  function triggerCountdown() {
+    if (isCountingDown || gameActive) return;
+    isCountingDown = true;
+
+    clearGameTimers();
+    setGameState('countdown');
+
+    let count = 3;
+
+    function nextCount() {
+      if (!demoCountdownNum) return;
+
+      demoCountdownNum.classList.remove('countdown-pop');
+      void demoCountdownNum.offsetWidth; // Restart CSS pop animation
+      demoCountdownNum.classList.add('countdown-pop');
+
+      if (count > 0) {
+        demoCountdownNum.textContent = count;
+        demoCountdownNum.style.color = 'var(--accent-burgundy)';
+        if (demoStatTime) demoStatTime.textContent = `Starts in ${count}...`;
+        audio?.trigger('Space', false); // Tactile click sound on count
+        count--;
+        countdownTimer = setTimeout(nextCount, 650);
+      } else {
+        demoCountdownNum.textContent = 'GO!';
+        demoCountdownNum.style.color = '#2e7d32'; // Matcha green GO
+        if (demoStatTime) demoStatTime.textContent = '0.0s';
+        audio?.trigger('Enter', false); // Pop sound on GO
+
+        countdownTimer = setTimeout(() => {
+          setGameState('playing');
+          isCountingDown = false;
+          startTypingNow();
+        }, 380);
+      }
+    }
+
+    nextCount();
+  }
+
+  function startTypingNow() {
+    gameActive = true;
+    gameStartTime = performance.now();
+    charIndex = 0;
+    correctKeystrokes = 0;
+    totalKeystrokes = 0;
+    if (demoStatTime) demoStatTime.textContent = '0.0s';
+
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      if (!gameActive || !gameStartTime) return;
+      const elapsedSecs = (performance.now() - gameStartTime) / 1000;
+      if (demoStatTime) demoStatTime.textContent = elapsedSecs.toFixed(1) + 's';
+
+      const elapsedMins = elapsedSecs / 60;
+      if (elapsedMins > 0.01) {
+        const wpm = Math.round((correctKeystrokes / 5) / elapsedMins);
+        if (demoStatWpm) demoStatWpm.textContent = `${wpm} WPM`;
+      }
+    }, 100);
+  }
+
+  function finishTypingTest() {
+    clearGameTimers();
+    gameActive = false;
+    const elapsedSecs = ((performance.now() - gameStartTime) / 1000).toFixed(1);
+    const elapsedMins = parseFloat(elapsedSecs) / 60;
+    const finalWpm = Math.max(1, Math.round((correctKeystrokes / 5) / (elapsedMins || 0.01)));
+    const finalAcc = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+
+    if (demoResWpm) demoResWpm.textContent = finalWpm;
+    if (demoResAcc) demoResAcc.textContent = `${finalAcc}%`;
+    if (demoResTime) demoResTime.textContent = `${elapsedSecs}s`;
+
+    // Play celebration chords
+    setTimeout(() => audio?.trigger('KeyE', false), 80);
+    setTimeout(() => audio?.trigger('KeyG', false), 180);
+    setTimeout(() => audio?.trigger('KeyB', false), 280);
+    setTimeout(() => audio?.trigger('Enter', false), 400);
+
+    setGameState('finished');
+  }
+
+  function processGameKey(key) {
+    if (!gameActive || charIndex >= currentQuote.length) return;
+    totalKeystrokes++;
+
+    const expectedChar = currentQuote[charIndex];
+
+    if (key === expectedChar) {
+      // Correct keystroke
+      correctKeystrokes++;
+      if (charSpans[charIndex]) {
+        charSpans[charIndex].className = 'ch correct';
+      }
+      charIndex++;
+
+      if (charIndex < currentQuote.length) {
+        if (charSpans[charIndex]) {
+          charSpans[charIndex].className = 'ch current';
+        }
+      } else {
+        finishTypingTest();
+      }
+    } else if (key === 'Backspace') {
+      if (charIndex > 0) {
+        if (charSpans[charIndex]) {
+          charSpans[charIndex].className = 'ch';
+        }
+        charIndex--;
+        if (charSpans[charIndex]) {
+          charSpans[charIndex].className = 'ch current';
+        }
+      }
+    } else if (key.length === 1) {
+      // Incorrect keystroke
+      if (charSpans[charIndex]) {
+        charSpans[charIndex].className = 'ch incorrect current';
+      }
+    }
+
+    // Update live accuracy
+    if (totalKeystrokes > 0 && demoStatAcc) {
+      const acc = Math.round((correctKeystrokes / totalKeystrokes) * 100);
+      demoStatAcc.textContent = `${acc}% ACC`;
+    }
+  }
+
+  // Event Listeners for Game
+  if (demoClickToStart) {
+    demoClickToStart.addEventListener('click', triggerCountdown);
+  }
+  if (demoBtnNewSentence) {
+    demoBtnNewSentence.addEventListener('click', () => {
+      initTypingTest();
+      triggerCountdown();
+    });
+  }
+  if (demoBtnStop) {
+    demoBtnStop.addEventListener('click', stopTypingTest);
+  }
+  if (demoBtnTryAgain) {
+    demoBtnTryAgain.addEventListener('click', () => {
+      initTypingTest();
+      triggerCountdown();
+    });
+  }
+
+  // Hook game input to global keyboard listener
+  window.addEventListener('keydown', (e) => {
+    if (gameActive) {
+      if (e.key === ' ' || e.key === 'Backspace') {
+        e.preventDefault(); // Prevent page scroll on spacebar during game
+      }
+      processGameKey(e.key);
+    }
+  });
+
+  // Initialize test on page load
+  initTypingTest();
 });
