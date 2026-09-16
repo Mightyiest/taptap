@@ -160,7 +160,17 @@ body.is-electron .window-frame {
   border: none !important;
 }
 
-/* Web Browser Preview (When browser viewport is larger than the companion window) */
+/* Web Browser Preview (When running on GitHub Pages or browser preview) */
+body:not(.is-electron) #winMinimize,
+body:not(.is-electron) #winClose {
+  display: none !important;
+}
+
+body:not(.is-electron) .window-header {
+  -webkit-app-region: no-drag;
+  cursor: default;
+}
+
 @media screen and (min-width: 520px) and (min-height: 600px) {
   body:not(.is-electron) {
     background-color: var(--bg-app);
@@ -168,7 +178,7 @@ body.is-electron .window-frame {
   }
   body:not(.is-electron) .window-frame {
     width: 440px;
-    height: 565px;
+    height: 605px;
     border-radius: var(--radius-window);
     box-shadow: var(--shadow-window);
     border: 1px solid var(--border-divider);
@@ -178,7 +188,23 @@ body.is-electron .window-frame {
   }
   body:not(.is-electron) .window-frame.keyboard-expanded {
     width: 640px;
-    height: 710px;
+    height: 730px;
+  }
+}
+
+@media screen and (max-width: 519px) {
+  body:not(.is-electron) {
+    background-color: var(--bg-surface);
+    padding: 0;
+  }
+  body:not(.is-electron) .window-frame {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
   }
 }
 

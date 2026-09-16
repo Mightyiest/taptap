@@ -3,6 +3,23 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
+// --- Single Instance Lock (Enforce Exactly 1 Active Instance) ---
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!gotSingleInstanceLock) {
+  console.log('[Taptap] Another instance is already running. Quitting redundant instance.');
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Focus existing window when a second instance tries to launch
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
+
 // --- Persistent Application Configuration (GPU Acceleration & Performance) ---
 function getConfigPath() {
   return path.join(app.getPath('userData'), 'taptap-config.json');
@@ -363,7 +380,8 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
+if (gotSingleInstanceLock) {
+  app.whenReady().then(() => {
   createWindow();
   createTray();
 
@@ -436,6 +454,7 @@ app.whenReady().then(() => {
     }
   });
 });
+}
 
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();

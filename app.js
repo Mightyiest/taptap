@@ -19,6 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('is-electron');
   }
 
+  // Ensure AudioContext is awakened immediately on first user gesture in web browsers
+  const wakeAudioOnFirstGesture = () => {
+    if (audio) {
+      audio.initContext();
+      if (audio.ctx && audio.ctx.state === 'suspended') {
+        audio.ctx.resume();
+      }
+    }
+  };
+  window.addEventListener('pointerdown', wakeAudioOnFirstGesture, { once: true, passive: true });
+  window.addEventListener('keydown', wakeAudioOnFirstGesture, { once: true, passive: true });
+
   // Setup Electron IPC if available
   let ipc = null;
   if (window.require) {
