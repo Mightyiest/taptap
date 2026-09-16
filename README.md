@@ -59,31 +59,6 @@ Taptap is built to run both as a **standalone desktop companion** and as an **in
 
 ---
 
-## 🏛️ Acoustic Switch Soundpack Library
-
-| Switch Profile | Brand | Category | Acoustic Feel | Sonic Signature | Vault Container |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Lofree Flow 2 (Pulse)** | Lofree | Linear | Smooth POM | Creamy Thock | `vk_pls.tap` |
-| **Lofree Flow 2 (Surfer)** | Lofree | Linear | Linear Clean | Clean Linear | `vk_srf.tap` |
-| **Lofree Flow 2 (Void)** | Lofree | Muted | Silent Linear | Muted Whispers | `vk_voi.tap` |
-| **Akko Piano Pro** | Akko | Linear | Deep Creamy | Creamy Thock | `vk_akko_piano_pro.tap` |
-| **Akko V3 Cream Yellow** | Akko | Linear | Thocky Linear | Deep Thock | `vk_akko_cream_yellow.tap` |
-| **Akko CS Jelly Black** | Akko | Linear | Deep Clack | Solid Clack | `vk_akko_jelly_black.tap` |
-| **Akko Clicky Pink** | Akko | Clicky | Bright Clicky | Bright Pop | `vk_akko_pink.tap` |
-| **Gateron Ink Black** | Gateron | Linear | Heavy Smooth | Deep Thock | `vk_gateron_ink_black.tap` |
-| **Gateron Ink Red** | Gateron | Linear | Light Smooth | Soft Linear | `vk_gateron_ink_red.tap` |
-| **Gateron Tealios** | Gateron | Linear | Crisp Linear | Crisp Smooth | `vk_gateron_tealios.tap` |
-| **NovelKeys Cream** | NovelKeys | Linear | POM Cream | Classic Cream | `vk_novelkeys_cream.tap` |
-| **Keychron K2 Red** | Keychron | Linear | Standard Linear | Clean Rebound | `vk_keychron_red.tap` |
-| **Keychron K2 Brown** | Keychron | Tactile | Gentle Bumpy | Gentle Tactile | `vk_keychron_brown.tap` |
-| **Drop Holy Panda** | Drop | Tactile | Snappy Pop | Heavy Thock | `vk_holy_panda.tap` |
-| **Kailh Box Navy** | Kailh | Clicky | Thick Clickbar | Deep Click | `vk_kailh_navy.tap` |
-| **IQUNIX MQ80** | IQUNIX | Muted | Gasket Thock | Gasket Acoustic | `vk_iqunix_mq80.tap` |
-| **Lizard Pop** | Lizard Pop | Novelty | Playful Pop | Bubble Pop | `vk_lizard.tap` |
-| **Tactile Mouse Suite** | Taptap | Mouse | Crisp Click | Micro Switch | `vm_all.tap` |
-
----
-
 ## 🎧 Architecture & Signal Pipeline
 
 ```
