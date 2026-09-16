@@ -39,9 +39,9 @@
   --shadow-md: 0 8px 24px rgba(50, 20, 25, 0.08);
   --shadow-lg: 0 20px 50px rgba(50, 20, 25, 0.12);
 
-  --font-serif: "Cinzel", "Georgia", serif;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-display: "Quicksand", "Plus Jakarta Sans", sans-serif;
+  --font-heading: "Quicksand", "Nunito", "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Nunito", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Quicksand", "Nunito", sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 14px;
@@ -114,9 +114,9 @@ body {
 
 /* Typography Helpers */
 h1, h2, h3, h4, .serif-heading {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-weight: 700;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   color: var(--text-main);
 }
 
@@ -655,20 +655,23 @@ h1, h2, h3, h4, .serif-heading {
 .kb-row {
   display: flex;
   gap: 4px;
+  width: 100%;
 }
 
 .kb-key {
-  height: 38px;
-  min-width: 34px;
-  padding: 0 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 42px;
+  padding: 0 4px;
   background: var(--key-bg);
   border: 1px solid var(--key-border);
-  border-radius: 6px;
+  border-radius: 8px;
   box-shadow: var(--key-shadow);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-main);
   cursor: pointer;
@@ -679,13 +682,15 @@ h1, h2, h3, h4, .serif-heading {
 .kb-key:active, .kb-key.pressed {
   background: var(--key-pressed-bg) !important;
   transform: translateY(2px) scale(0.97);
-  box-shadow: 0 0 0 1px var(--accent-burgundy);
+  box-shadow: 0 0 0 1.5px var(--accent-burgundy);
 }
 
-.kb-key.key-wide { flex: 1.5; }
-.kb-key.key-wider { flex: 2; }
-.kb-key.key-widest { flex: 2.5; }
-.kb-key.key-space { flex: 6; }
+.kb-key.key-w125 { flex: 1.25 1 0; }
+.kb-key.key-w15  { flex: 1.5 1 0; }
+.kb-key.key-w175 { flex: 1.75 1 0; }
+.kb-key.key-w20  { flex: 2.0 1 0; }
+.kb-key.key-w225 { flex: 2.25 1 0; }
+.kb-key.key-space { flex: 6.25 1 0; }
 
 /* Interactive Mouse Click Strip */
 .demo-mouse-strip {

@@ -34,7 +34,7 @@
 - **🛡️ Cryptographic Acoustic Vault (`.tap`)**: Proprietary `TAPTAP_VAULT_V1` container architecture with symmetric in-memory stream descrambling and tokenized sample indexing. Audio assets remain protected with zero raw audio exposure.
 - **🔒 Single-Instance Architecture**: Built-in OS instance lock (`app.requestSingleInstanceLock`) prevents multiple processes from conflicting. Launching a second instance automatically focuses the existing session without duplicate audio or tray icons.
 - **⌨️ 18+ Curated Luxury Switch Acoustics**: Handcrafted acoustic profiles spanning Linear, Tactile, Clicky, and Muted/Novelty switches, plus high-fidelity tactile mouse clicks.
-- **🎨 Bespoke Luxury Aesthetic**: Warm alabaster linen (`#f4f0e6`) and royal bordeaux (`#721825`) palette, Cinzel classical typography, fluid light & dark themes, and a frameless glass-inspired window.
+- **🎨 Cute & Friendly Aesthetic**: Warm alabaster linen (`#f4f0e6`) and royal bordeaux (`#721825`) palette, cute rounded Quicksand & Nunito typography, fluid light & dark themes, and a frameless glass-inspired window.
 - **⚡ Ultra Low-Latency Native Hooks**: Backed by `uiohook-napi` for global, non-intrusive background key and mouse event interception across any application.
 - **🎯 Interactive Typing Test & Soundstage Radar**: Real-time canvas radar visualizer tracking acoustic trajectory, paired with a live typing speed mini-game featuring 3-second countdowns, real-time WPM, accuracy tracking, and acoustic feedback.
 - **🪟 Stealth Mode & Tray Integration**: Seamless Windows system tray integration, background execution, and global instant mute toggle (<kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd>).
