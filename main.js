@@ -275,7 +275,7 @@ function createWindow() {
     }
   });
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile('app.html');
 
   // Intercept window close: hide to system tray instead of exiting
   mainWindow.on('close', (event) => {

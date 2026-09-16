@@ -37,6 +37,7 @@
     },
     "files": [
       "index.html",
+      "app.html",
       "styles.css",
       "app.js",
       "audio-engine.js",

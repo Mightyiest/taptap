@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taptap</title>
+  <meta name="description" content="Artisanal acoustic companion for mechanical keyboard and mouse sounds.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Compact Window Shell (440px × 600px) -->
+  <main class="window-frame">
+
+    <!-- Windows Minimalist Title Bar -->
+    <header class="window-header">
+      <div class="header-brand" id="btnBrandAbout" title="About Taptap" role="button" tabindex="0">
+        <img class="brand-icon" src="assets/icon.png" alt="Taptap" width="18" height="18">
+        <span class="brand-name">Taptap</span>
+      </div>
+
+      <div class="header-controls">
+        <button class="win-btn win-action" id="btnAbout" title="About Taptap">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+          </svg>
+        </button>
+        <button class="win-btn win-action" id="btnTheme" title="Toggle Light / Dark Theme">
+          <svg id="themeIcon" viewBox="0 0 24 24">
+            <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-3.03 0-5.5-2.47-5.5-5.5 0-1.82.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/>
+          </svg>
+        </button>
+        <button class="win-btn win-action" id="btnMute" title="Global Mute (Ctrl+Shift+M)">
+          <svg id="muteIcon" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+          </svg>
+        </button>
+        <button class="win-btn" id="winMinimize" title="Minimize">
+          <svg viewBox="0 0 12 12"><path d="M2 6h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="win-btn win-btn-close" id="winClose" title="Close to System Tray">
+          <svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs: 4 Distinct Dedicated Views -->
+    <nav class="segmented-nav-wrap">
+      <div class="segmented-nav">
+        <button class="nav-tab active" data-page="0">Soundstage</button>
+        <button class="nav-tab" data-page="1">Keyboard</button>
+        <button class="nav-tab" data-page="2">Mouse</button>
+        <button class="nav-tab" data-page="3">Settings</button>
+      </div>
+    </nav>
+
+    <!-- Horizontal Carousel Viewport (Scroll-Snap Enabled) -->
+    <div class="carousel-viewport" id="carouselViewport">
+
+      <!-- ================= PAGE 0: SOUNDSTAGE & QUICK SELECTORS ================= -->
+      <section class="carousel-page" id="page0">
+        
+        <!-- Spacious Soundstage Radar Box (Fixed Height, Never Squished) -->
+        <div class="soundstage-box">
+          <div class="soundstage-top">
+            <span class="stage-label">Acoustic Soundstage</span>
+            <span class="stage-readout" id="stageReadout">Ready</span>
+          </div>
+
+          <div class="radar-arena">
+            <canvas id="radarCanvas"></canvas>
+            <div class="radar-grid">
+              <div class="radar-ray radar-ray-left"></div>
+              <div class="radar-ray radar-ray-mid"></div>
+              <div class="radar-ray radar-ray-right"></div>
+              <div class="radar-arc radar-arc-1"></div>
+              <div class="radar-arc radar-arc-2"></div>
+              <div class="radar-arc radar-arc-3"></div>
+              <div class="radar-listener"></div>
+            </div>
+          </div>
+
+          <div class="stage-submarkers">
+            <span>◀ L 100%</span>
+            <span>Center (0.0)</span>
+            <span>R 100% ▶</span>
+          </div>
+        </div>
+
+        <!-- QUICK ACCESS SOUNDPACK SELECTORS (Fast Switching) -->
+        <div class="quick-access-card">
+          <div class="quick-access-header">
+            <div class="quick-title">
+              <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+              <span>Quick Sound Selectors</span>
+            </div>
+          </div>
+
+          <!-- Cute Active Switch Card -->
+          <div class="active-switch-card">
+            <div class="active-switch-main">
+              <div class="active-switch-avatar" id="activeSwitchAvatar0">
+                <img class="active-brand-img" src="assets/brands/lofree.png" width="30" height="30" style="width:100%;height:100%;max-width:30px;max-height:30px;object-fit:contain;display:block;" alt="Lofree">
+              </div>
+              <div class="active-switch-details">
+                <div class="active-switch-title-row">
+                  <span class="active-switch-name" id="activeSwitchName0">Lofree Flow 2 (Pulse)</span>
+                  <span class="active-switch-badge" id="activeSwitchBadge0">Linear</span>
+                </div>
+                <span class="active-switch-sub" id="activeSwitchSub0">Smooth POM • Creamy Thock</span>
+              </div>
+              <button class="btn-change-switch" id="btnOpenSwitchPicker0" title="Open Switch Library">
+                <span>Change ✨</span>
+              </button>
+            </div>
+            <!-- Quick Favorite Switches Row -->
+            <div class="switch-favorites-row" id="switchFavoritesRow0"></div>
+          </div>
+
+          <!-- Mouse Model Quick Row -->
+          <div class="quick-row">
+            <span class="quick-row-label">Mouse Model:</span>
+            <div class="select-wrapper">
+              <select id="selMousePackQuick" class="apple-select">
+                <option value="Bloody V8" selected>Bloody V8 (Default)</option>
+                <option value="Logitech Superlight">Logitech Superlight</option>
+                <option value="Razer DeathAdder V2 Pro">Razer DeathAdder V2 Pro</option>
+                <option value="Glorious Model O">Glorious Model O</option>
+                <option value="Logitech G203">Logitech G203</option>
+                <option value="IntelliMouse Optical USB and PS2 Compatible">IntelliMouse Optical</option>
+                <option value="Rapture Venom">Rapture Venom</option>
+                <option value="Trust GXT 152">Trust GXT 152</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Spatial Width -->
+        <div class="sliders-card">
+          <div class="slider-row">
+            <div class="slider-meta">
+              <span>Spatial Stereo Width</span>
+              <span id="txtWidth">100%</span>
+            </div>
+            <input type="range" id="rngWidth" class="apple-slider" min="0" max="180" value="100">
+          </div>
+        </div>
+
+        <!-- Helpful Navigation Hint -->
+        <div class="quick-nav-hint">
+          <span>💡 Dedicated volume and mute settings are in the <strong>Keyboard</strong> & <strong>Mouse</strong> tabs.</span>
+        </div>
+
+      </section>
+
+      <!-- ================= PAGE 1: KEYBOARD MATRIX, MINIGAME & AUDIO SETTINGS ================= -->
+      <section class="carousel-page" id="page1">
+        
+        <!-- Typing Test Mini Game With STOP Button -->
+        <div class="typing-game-card">
+          <div class="game-header">
+            <div class="game-meta-group">
+              <span class="game-pill">Typing Test</span>
+              <span class="game-stat" id="statWpm">0 WPM</span>
+              <span class="game-stat" id="statAccuracy">100% ACC</span>
+              <span class="game-stat stat-time-pill" id="statTime">Ready</span>
+            </div>
+            <div class="game-actions-group">
+              <button class="game-btn-stop" id="btnStopGame" title="Stop Typing Test">
+                <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                <span>Stop</span>
+              </button>
+              <button class="icon-btn-mini" id="btnRestartGame" title="New Sentence">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Typing Stream -->
+          <div class="typing-stream-box" id="typingStreamBox">
+            <!-- Click Here to Start Prompt Overlay -->
+            <div class="click-to-start-overlay" id="clickToStartOverlay">
+              <span class="start-prompt-pill">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                </svg>
+                Click here to start
+              </span>
+            </div>
+
+            <!-- Animated 3.. 2.. 1.. GO! Countdown Overlay -->
+            <div class="game-countdown-overlay" id="gameCountdownOverlay">
+              <span class="countdown-num" id="countdownNumber">3</span>
+            </div>
+
+            <div class="stream-text" id="streamText"></div>
+            <input type="text" class="hidden-game-input" id="hiddenGameInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          </div>
+
+          <!-- Score Card Modal (Appears upon completion) -->
+          <div class="game-result-overlay" id="gameResultOverlay">
+            <div class="result-badge">Test Complete</div>
+            <div class="result-stats-row">
+              <div class="result-stat-col">
+                <span class="result-num" id="resWpm">0</span>
+                <span class="result-lbl">WPM</span>
+              </div>
+              <div class="result-stat-divider"></div>
+              <div class="result-stat-col">
+                <span class="result-num" id="resAcc">0%</span>
+                <span class="result-lbl">Accuracy</span>
+              </div>
+              <div class="result-stat-divider"></div>
+              <div class="result-stat-col">
+                <span class="result-num" id="resTime">0s</span>
+                <span class="result-lbl">Time</span>
+              </div>
+            </div>
+            <div class="result-reset-hint" id="resCountdownHint">Next test starting in 5s...</div>
+            <button class="btn-play-again" id="btnPlayAgain">Play Again</button>
+          </div>
+        </div>
+
+        <!-- Keyboard Visual Matrix with Layout Picker -->
+        <div class="section-header-row">
+          <span class="section-title" id="lblKeyboardMatrixTitle">ANSI 65% Mechanical Matrix</span>
+          <div class="layout-picker-wrapper">
+            <select id="selKeyboardLayout" class="apple-select-mini" title="Select Physical Keyboard Layout">
+              <option value="ansi-68" selected>ANSI 65% (68-Key)</option>
+              <option value="ansi-60">ANSI 60% (61-Key)</option>
+              <option value="ansi-75">ANSI 75% (84-Key)</option>
+              <option value="apple-65">Apple Mac 65%</option>
+            </select>
+          </div>
+        </div>
+        <div class="kb-compact-case" id="keyboardContainer">
+          <!-- Populated dynamically based on selected layout -->
+        </div>
+
+        <!-- DEDICATED KEYBOARD SOUND SETTINGS CARD -->
+        <div class="audio-section-card">
+          <div class="section-card-header">
+            <div class="section-card-title">
+              <svg viewBox="0 0 24 24"><path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2V8zm0 3h2v2h-2v-2zM8 8h2v2H8V8zm0 3h2v2H8v-2zm-1 2H5v-2h2v2zm0-3H5V8h2v2zm9 7H8v-2h8v2zm0-4h-2v-2h2v2zm0-3h-2V8h2v2zm3 3h-2v-2h2v2zm0-3h-2V8h2v2z"/></svg>
+              <span>Keyboard Sound Settings</span>
+            </div>
+            <button class="pill-mute-btn" id="btnMuteKeyboard" title="Mute or Unmute Keyboard Sound">
+              <span class="mute-dot"></span>
+              <span id="txtMuteKb">Sound On</span>
+            </button>
+          </div>
+
+          <!-- Cute Active Switch Card on Keyboard Tab -->
+          <div class="active-switch-card">
+            <div class="active-switch-main">
+              <div class="active-switch-avatar" id="activeSwitchAvatar1">
+                <img class="active-brand-img" src="assets/brands/lofree.png" width="30" height="30" style="width:100%;height:100%;max-width:30px;max-height:30px;object-fit:contain;display:block;" alt="Lofree">
+              </div>
+              <div class="active-switch-details">
+                <div class="active-switch-title-row">
+                  <span class="active-switch-name" id="activeSwitchName1">Lofree Flow 2 (Pulse)</span>
+                  <span class="active-switch-badge" id="activeSwitchBadge1">Linear</span>
+                </div>
+                <span class="active-switch-sub" id="activeSwitchSub1">Smooth POM • Creamy Thock</span>
+              </div>
+              <button class="btn-change-switch" id="btnOpenSwitchPicker1" title="Open Switch Library">
+                <span>Change ✨</span>
+              </button>
+            </div>
+            <!-- Quick Favorite Switches Row -->
+            <div class="switch-favorites-row" id="switchFavoritesRow1"></div>
+          </div>
+
+          <div class="slider-row compact-slider">
+            <div class="slider-meta">
+              <span>Keyboard Volume</span>
+              <span id="txtKbVolume">85%</span>
+            </div>
+            <input type="range" id="rngKbVolume" class="apple-slider" min="0" max="100" value="85">
+          </div>
+
+          <div class="setting-card-mini">
+            <div class="setting-info">
+              <span class="setting-title">Key Release Audio (Upstroke)</span>
+              <span class="setting-desc">Plays tactile switch release audio when lifting fingers</span>
+            </div>
+            <label class="apple-toggle">
+              <input type="checkbox" id="chkUpstroke" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= PAGE 2: MOUSE CLICK ARENA & AUDIO SETTINGS ================= -->
+      <section class="carousel-page" id="page2">
+        <div class="section-title">Interactive Mouse Soundstage</div>
+
+        <!-- Interactive Mouse Tester Arena -->
+        <div class="mouse-arena-card">
+          <div class="mouse-arena-top">
+            <span class="stage-label">Acoustic Click Pad</span>
+            <span class="stage-readout" id="mouseClickReadout">Ready to Click</span>
+          </div>
+
+          <div class="mouse-silhouette-wrap">
+            <div class="mouse-silhouette">
+              <div class="mouse-buttons-row">
+                <button class="mouse-btn-zone mouse-btn-left" id="mBtnLeft" title="Click to test Left Button" aria-label="Left Button"></button>
+                <button class="mouse-btn-zone mouse-btn-right" id="mBtnRight" title="Click to test Right Button" aria-label="Right Button"></button>
+              </div>
+              <button class="mouse-wheel-zone" id="mBtnMid" title="Click to test Middle Wheel" aria-label="Middle Wheel">
+                <span class="wheel-knurl"></span>
+              </button>
+              <div class="mouse-body-lower"></div>
+            </div>
+          </div>
+
+          <div class="mouse-pills-row">
+            <button class="mouse-pill-btn" id="mBtnLeftAlt">
+              <span class="m-title">Left Click</span>
+              <span class="m-sub">Pan: L 28%</span>
+            </button>
+            <button class="mouse-pill-btn" id="mBtnMidAlt">
+              <span class="m-title">Wheel / Mid</span>
+              <span class="m-sub">Center</span>
+            </button>
+            <button class="mouse-pill-btn" id="mBtnRightAlt">
+              <span class="m-title">Right Click</span>
+              <span class="m-sub">Pan: R 28%</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- DEDICATED MOUSE SOUND SETTINGS CARD -->
+        <div class="audio-section-card">
+          <div class="section-card-header">
+            <div class="section-card-title">
+              <svg viewBox="0 0 24 24"><path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm7-13.93C7.05 1.56 4 4.92 4 9h7V1.07z"/></svg>
+              <span>Mouse Sound Settings</span>
+            </div>
+            <button class="pill-mute-btn" id="btnMuteMouse" title="Mute or Unmute Mouse Sound">
+              <span class="mute-dot"></span>
+              <span id="txtMuteMouse">Sound On</span>
+            </button>
+          </div>
+
+          <div class="select-wrapper">
+            <select id="selMousePack" class="apple-select">
+              <option value="Bloody V8" selected>Bloody V8 (Default)</option>
+              <option value="Logitech Superlight">Logitech Superlight</option>
+              <option value="Razer DeathAdder V2 Pro">Razer DeathAdder V2 Pro</option>
+              <option value="Glorious Model O">Glorious Model O</option>
+              <option value="Logitech G203">Logitech G203</option>
+              <option value="IntelliMouse Optical USB and PS2 Compatible">IntelliMouse Optical</option>
+              <option value="Rapture Venom">Rapture Venom</option>
+              <option value="Trust GXT 152">Trust GXT 152</option>
+            </select>
+          </div>
+
+          <div class="slider-row compact-slider">
+            <div class="slider-meta">
+              <span>Mouse Volume</span>
+              <span id="txtMouseVolume">85%</span>
+            </div>
+            <input type="range" id="rngMouseVolume" class="apple-slider" min="0" max="100" value="85">
+          </div>
+
+          <div class="setting-card-mini">
+            <div class="setting-info">
+              <span class="setting-title">Dynamic Cursor Panning</span>
+              <span class="setting-desc">Pans mouse clicks based on desktop cursor position</span>
+            </div>
+            <label class="apple-toggle">
+              <input type="checkbox" id="chkCursorTracking" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= PAGE 3: GENERAL SETTINGS & AUDIO ENGINE ================= -->
+      <section class="carousel-page" id="page3">
+        <div class="section-title">Acoustic Calibration & Engine</div>
+
+        <div class="settings-group">
+          <!-- Spatial Engine Section -->
+          <div class="settings-section-divider">
+            <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            <span>Spatial Acoustic Engine</span>
+          </div>
+
+          <!-- Spatial Engine Mode -->
+          <div class="setting-card">
+            <div class="setting-info">
+              <span class="setting-title">Audio Engine</span>
+              <span class="setting-desc">3D binaural simulation for headphones</span>
+            </div>
+            <div class="mode-capsule">
+              <button class="mode-opt active" data-mode="hrtf">3D HRTF</button>
+              <button class="mode-opt" data-mode="stereo">Stereo</button>
+            </div>
+          </div>
+
+          <!-- 3D Vertical Elevation & Z-Axis Depth -->
+          <div class="setting-card-mini">
+            <div class="setting-info">
+              <span class="setting-title">3D Vertical Elevation</span>
+              <span class="setting-desc">Simulates physical keyboard incline and depth across rows</span>
+            </div>
+            <label class="apple-toggle">
+              <input type="checkbox" id="chkElevation" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Keyboard Layout Selection Card -->
+          <div class="setting-card-mini">
+            <div class="setting-info">
+              <span class="setting-title">Keyboard Layout</span>
+              <span class="setting-desc" id="lblSelectedLayoutDesc">ANSI 65% (68-Key) • Esc top-left, `~ top-right</span>
+            </div>
+            <div class="select-wrapper select-wrapper-mini">
+              <select id="selSettingsKeyboardLayout" class="apple-select apple-select-mini">
+                <option value="ansi-68" selected>ANSI 65% (68-Key)</option>
+                <option value="ansi-60">ANSI 60% (61-Key)</option>
+                <option value="ansi-75">ANSI 75% (84-Key)</option>
+                <option value="apple-65">Apple Mac 65%</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pitch Jitter -->
+          <div class="sliders-card">
+            <div class="slider-row">
+              <div class="slider-meta">
+                <span>Micro-Pitch Jitter</span>
+                <span id="txtJitter">±2.5%</span>
+              </div>
+              <input type="range" id="rngJitter" class="apple-slider" min="0" max="60" value="25">
+            </div>
+          </div>
+
+          <!-- Active Soundpack Info -->
+          <div class="soundpack-info-card">
+            <div class="pack-status-line">
+              <span>Keyboard Pack</span>
+              <strong id="infoPackName">Lofree Flow 2 (Pulse)</strong>
+            </div>
+            <div class="pack-status-line">
+              <span>Mouse Sound Pack</span>
+              <strong id="infoMousePackName" style="color:var(--accent-blue);">Bloody V8</strong>
+            </div>
+            <div class="pack-status-line">
+              <span>Global Background Hook</span>
+              <span style="color:var(--accent-gold); font-weight:600;">Active (Windows Low-Level Hook)</span>
+            </div>
+          </div>
+
+          <!-- System & Desktop Integration Section -->
+          <div class="settings-section-divider">
+            <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+            <span>Desktop & System Integration</span>
+          </div>
+
+          <div class="setting-card-mini">
+            <div class="setting-info">
+              <span class="setting-title">Launch on Windows Startup</span>
+              <span class="setting-desc">Starts silently in system tray when your PC boots</span>
+            </div>
+            <label class="apple-toggle">
+              <input type="checkbox" id="chkStartupLaunch">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card-mini">
+            <div class="setting-info">
+              <span class="setting-title">GPU Hardware Acceleration</span>
+              <span class="setting-desc" id="gpuStatusDesc">Smooth 60/120+ FPS rendering (requires restart)</span>
+            </div>
+            <label class="apple-toggle">
+              <input type="checkbox" id="chkGpuAcceleration" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-card-mini" id="btnSettingsAbout" style="cursor:pointer;">
+            <div class="setting-info">
+              <span class="setting-title">About Taptap</span>
+              <span class="setting-desc">Version 1.0.0 • Spatial Surround Audio Companion</span>
+            </div>
+            <svg style="width:14px;height:14px;color:var(--text-tertiary);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+    <!-- Bottom Page Indicator Dots: 4 Pages -->
+    <footer class="pagination-footer">
+      <span class="page-dot active" data-page="0"></span>
+      <span class="page-dot" data-page="1"></span>
+      <span class="page-dot" data-page="2"></span>
+      <span class="page-dot" data-page="3"></span>
+    </footer>
+
+  </main>
+
+  <!-- Cute & Friendly Switch Picker Modal -->
+  <div class="modal-overlay" id="switchPickerModal" aria-hidden="true">
+    <div class="switch-picker-card">
+      
+      <!-- Modal Header -->
+      <div class="picker-header">
+        <div class="picker-header-text">
+          <h3 class="picker-title">Switch Library</h3>
+          <span class="picker-subtitle">Choose from 17 bespoke acoustic switches</span>
+        </div>
+        <button class="modal-close-btn" id="btnSwitchPickerClose" title="Close">
+          <svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <!-- Live Search Bar -->
+      <div class="picker-search-wrap">
+        <svg class="picker-search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
+        <input type="text" id="inputSwitchSearch" class="picker-search-input" placeholder="Search by name, brand, or feel..." autocomplete="off">
+        <button class="picker-search-clear" id="btnSearchClear" style="display:none;" title="Clear search">✕</button>
+      </div>
+
+      <!-- Category Filter Chips -->
+      <div class="picker-categories">
+        <button class="category-chip active" data-cat="all">All</button>
+        <button class="category-chip" data-cat="linear">Linear</button>
+        <button class="category-chip" data-cat="tactile">Tactile</button>
+        <button class="category-chip" data-cat="clicky">Clicky</button>
+        <button class="category-chip" data-cat="novelty">Muted</button>
+      </div>
+
+      <!-- Switches List (Smooth scrollable) -->
+      <div class="picker-switch-grid" id="pickerSwitchGrid">
+        <!-- Rendered dynamically from window.TaptapSwitches -->
+      </div>
+
+      <!-- Footer count note -->
+      <div class="picker-footer">
+        <span id="pickerCountLabel">17 switches available</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Luxury "About Taptap" Modal Window -->
+  <div class="modal-overlay" id="aboutModal" aria-hidden="true">
+    <div class="about-card">
+      <button class="modal-close-btn" id="btnAboutClose" title="Close">
+        <svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="about-icon-wrap">
+        <img class="about-app-icon" src="assets/icon.png" alt="Taptap Keycap Icon" width="72" height="72">
+      </div>
+
+      <h2 class="about-app-title">Taptap</h2>
+      <div class="about-version-badge">Version 1.0.0</div>
+      <p class="about-app-desc">
+        Bespoke 3D spatial surround acoustic companion for mechanical keyboard and mouse clicks.
+      </p>
+
+      <div class="about-github-box">
+        <a href="https://github.com/Mightyiest/" class="about-github-link" id="linkGithub" target="_blank" rel="noopener noreferrer">
+          <svg class="github-icon" viewBox="0 0 24 24">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          <span>github.com/Mightyiest</span>
+          <svg class="external-link-arrow" viewBox="0 0 12 12"><path d="M3.5 2.5h6v6M9.5 2.5l-7 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+
+      <div class="about-footer-note">
+        Crafted with precision & passion
+      </div>
+    </div>
+  </div>
+
+  <!-- Luxury Restart Confirmation Modal -->
+  <div class="modal-overlay" id="restartModal" aria-hidden="true">
+    <div class="restart-prompt-card">
+      <div class="restart-prompt-icon">⚡</div>
+      <h3 class="restart-prompt-title">Restart Required</h3>
+      <p class="restart-prompt-desc" id="restartPromptDesc">
+        GPU hardware acceleration settings updated. Restart Taptap now to apply changes?
+      </p>
+      <div class="restart-prompt-actions">
+        <button class="btn-prompt-secondary" id="btnRestartLater">Later</button>
+        <button class="btn-prompt-primary" id="btnRestartNow">Restart Now</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="audio-engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
