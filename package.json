@@ -1,0 +1,87 @@
+{
+  "name": "taptap",
+  "version": "1.0.0",
+  "description": "Cross-platform spatial surround sound companion for keyboard and mouse",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "preview": "npx -y serve .",
+    "vault:pack": "node scripts/vault-cli.js pack",
+    "vault:scramble": "node scripts/vault-cli.js scramble",
+    "vault:unscramble": "node scripts/vault-cli.js unscramble",
+    "vault:verify": "node scripts/vault-cli.js verify",
+    "dist": "electron-builder --win",
+    "dist:nsis": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable"
+  },
+  "keywords": [
+    "spatial-audio",
+    "keyboard-sounds",
+    "mouse-sounds",
+    "mechvibes",
+    "hrtf",
+    "surround-sound"
+  ],
+  "author": "Taptap Team",
+  "license": "MIT",
+  "build": {
+    "appId": "com.taptap.companion",
+    "productName": "Taptap",
+    "copyright": "Copyright © 2026 Taptap",
+    "compression": "maximum",
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "audio-engine.js",
+      "main.js",
+      "package.json",
+      "assets/icon.ico",
+      "assets/icon.png",
+      "assets/brands/**/*",
+      "assets/vault/*.tap",
+      "!assets/taptap.png",
+      "!scripts/**/*",
+      "!.agents/**/*",
+      "!**/*.md",
+      "!**/*.wav",
+      "!**/*.mp3",
+      "!dist/**/*"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/uiohook-napi/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Taptap",
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "differentialPackage": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "uiohook-napi": "^1.5.5"
+  }
+}

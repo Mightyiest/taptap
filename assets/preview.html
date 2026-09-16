@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Taptap 3D XDA Keycap Icon Preview</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      background: #e6dfd3;
+    }
+
+    .preview-section {
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .light-theme {
+      background: #f4f0e6;
+      color: #241917;
+      border: 1px solid rgba(114, 24, 37, 0.15);
+    }
+
+    .dark-theme {
+      background: #130a0d;
+      color: #fbf8f2;
+      border: 1px solid rgba(220, 95, 115, 0.2);
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .icon-row {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .icon-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .label {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .header-bar-mock {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 8px;
+      margin-top: 20px;
+      width: fit-content;
+    }
+
+    .dark-theme .header-bar-mock {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Light Theme Preview -->
+  <div class="preview-section light-theme">
+    <h2>Light Theme (Warm Linen & Alabaster - #f4f0e6)</h2>
+    <div class="icon-row">
+      <div class="icon-card">
+        <img src="icon.ico" width="256" height="256" alt="256px">
+        <span class="label">256 × 256 (Hero)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="128" height="128" alt="128px">
+        <span class="label">128 × 128</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="64" height="64" alt="64px">
+        <span class="label">64 × 64 (Dock / Taskbar)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="32" height="32" alt="32px">
+        <span class="label">32 × 32 (Favicon)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="24" height="24" alt="24px">
+        <span class="label">24 × 24 (Header)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="16" height="16" alt="16px">
+        <span class="label">16 × 16 (Tray)</span>
+      </div>
+    </div>
+
+    <div class="header-bar-mock">
+      <img src="icon.svg" width="20" height="20" alt="icon">
+      <span class="brand-title">Taptap</span>
+    </div>
+  </div>
+
+  <!-- Dark Theme Preview -->
+  <div class="preview-section dark-theme">
+    <h2>Dark Theme (Midnight Burgundy & Velvet Wine - #130a0d)</h2>
+    <div class="icon-row">
+      <div class="icon-card">
+        <img src="icon.ico" width="256" height="256" alt="256px">
+        <span class="label">256 × 256 (Hero)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="128" height="128" alt="128px">
+        <span class="label">128 × 128</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="64" height="64" alt="64px">
+        <span class="label">64 × 64 (Dock / Taskbar)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="32" height="32" alt="32px">
+        <span class="label">32 × 32 (Favicon)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="24" height="24" alt="24px">
+        <span class="label">24 × 24 (Header)</span>
+      </div>
+      <div class="icon-card">
+        <img src="icon.ico" width="16" height="16" alt="16px">
+        <span class="label">16 × 16 (Tray)</span>
+      </div>
+    </div>
+
+    <div class="header-bar-mock">
+      <img src="icon.ico" width="20" height="20" alt="icon">
+      <span class="brand-title">Taptap</span>
+    </div>
+  </div>
+
+</body>
+
+</html>
