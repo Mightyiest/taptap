@@ -9,13 +9,16 @@ Welcome to the initial official release of **Taptap** — a bespoke spatial surr
 - **🌐 3D Binaural HRTF Soundstage**:
   - Dynamically renders acoustic coordinates matching physical key positions across a 3D stereo field.
   - Interactive Soundstage Radar visualizer tracking acoustic trajectory in real-time at 60 FPS.
-  - Configurable spatial spread (0%–200%) and Z-axis elevation simulation.
+  - Configurable spatial stereo spread (0%–200%) and Z-axis elevation simulation.
 
-- **⌨️ 18+ Handcrafted Luxury Switch Profiles**:
-  - **Linear & Smooth**: *Akko Jelly Black, Durock Alpaca, Gateron Ink Red, Gateron Tealios, NovelKeys Cream*.
-  - **Tactile & Thocky**: *Holy Panda, Akko Cream Yellow, Keychron Brown, Akko Piano Pro, Topre*.
-  - **Classic & Clicky**: *IBM Buckling Spring, Alps Blue, Kailh Box Navy*.
-  - **Tactile Mouse Clicks**: *High-fidelity, crisp Omron/Kailh optical-mechanical mouse responses*.
+- **⌨️ 17 Curated Luxury Switch Acoustics**:
+  - **Linear & Smooth**: *Lofree Flow 2 (Pulse), Lofree Flow 2 (Surfer), Akko Piano Pro, Akko V3 Cream Yellow, Akko CS Jelly Black, Gateron Ink Black, Gateron Ink Red, Gateron Tealios, NovelKeys Cream, Keychron K2 Red*.
+  - **Tactile & Thocky**: *Drop Holy Panda, Keychron K2 Brown*.
+  - **Crisp Clicky**: *Kailh Box Navy, Akko Clicky Pink*.
+  - **Muted & Novelty**: *Lofree Flow 2 (Void), IQUNIX MQ80 Gasket, Lizard Pop*.
+
+- **🖱️ 8 Tactile Mouse Click Profiles**:
+  - *Bloody V8, Logitech Superlight, Razer DeathAdder V2 Pro, Glorious Model O, Logitech G203, IntelliMouse Optical, Rapture Venom, Trust GXT 152*.
 
 - **🛡️ Proprietary Cryptographic Acoustic Vault (`.tap`)**:
   - Encrypted `TAPTAP_VAULT_V1` container architecture with symmetric in-memory stream descrambling.

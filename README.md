@@ -33,7 +33,7 @@
 - **🌐 3D Binaural Soundstage**: Realistic spatial audio positioning using Web Audio API `PannerNode` with HRTF panning and Z-axis vertical elevation. Every keystroke is dynamically rendered across a 3D stereo acoustic field corresponding to keyboard physical key positions.
 - **🛡️ Cryptographic Acoustic Vault (`.tap`)**: Proprietary `TAPTAP_VAULT_V1` container architecture with symmetric in-memory stream descrambling and tokenized sample indexing. Audio assets remain protected with zero raw audio exposure.
 - **🔒 Single-Instance Architecture**: Built-in OS instance lock (`app.requestSingleInstanceLock`) prevents multiple processes from conflicting. Launching a second instance automatically focuses the existing session without duplicate audio or tray icons.
-- **⌨️ 18+ Curated Luxury Switch Acoustics**: Handcrafted acoustic profiles spanning Linear, Tactile, Clicky, and Muted/Novelty switches, plus high-fidelity tactile mouse clicks.
+- **⌨️ 17 Curated Luxury Switch Acoustics & 8 Mouse Models**: Handcrafted acoustic profiles spanning Linear (*Lofree Pulse/Surfer, Akko Piano Pro, Akko Cream Yellow, Gateron Ink Black/Red, Tealios, NovelKeys Cream, Keychron Red*), Tactile (*Holy Panda, Keychron Brown*), Clicky (*Kailh Box Navy, Akko Pink*), Muted/Novelty (*Lofree Void, IQUNIX MQ80, Lizard Pop*), plus 8 high-fidelity tactile mouse click profiles.
 - **🎨 Cute & Friendly Aesthetic**: Warm alabaster linen (`#f4f0e6`) and royal bordeaux (`#721825`) palette, cute rounded Quicksand & Nunito typography, fluid light & dark themes, and a frameless glass-inspired window.
 - **⚡ Ultra Low-Latency Native Hooks**: Backed by `uiohook-napi` for global, non-intrusive background key and mouse event interception across any application.
 - **🎯 Interactive Typing Test & Soundstage Radar**: Real-time canvas radar visualizer tracking acoustic trajectory, paired with a live typing speed mini-game featuring 3-second countdowns, real-time WPM, accuracy tracking, and acoustic feedback.
@@ -49,7 +49,7 @@ Taptap is built to run both as a **standalone desktop companion** and as an **in
 | :--- | :---: | :---: |
 | **Instant In-Browser Sound Testing** | ✅ Yes (Zero installation) | ✅ Yes |
 | **Interactive Typing Mini-Game** | ✅ Yes | ✅ Yes |
-| **Full 18+ Switch Vault Library** | ✅ Yes (In-memory decrypt) | ✅ Yes (In-memory decrypt) |
+| **Full 17 Switch & 8 Mouse Vault** | ✅ Yes (In-memory decrypt) | ✅ Yes (In-memory decrypt) |
 | **3D HRTF Soundstage & Radar Visualizer** | ✅ Yes | ✅ Yes |
 | **Light / Dark Luxury Themes** | ✅ Yes | ✅ Yes |
 | **System-Wide Background Hooks** | ❌ (Browser sandbox limited) | ✅ Yes (Active in all apps) |
