@@ -1,8 +1,70 @@
+# ✦ Taptap v1.1.0 — Performance & Sound Library Release ✦
+
+Welcome to **Taptap v1.1.0**, featuring major performance optimizations, comprehensive audio graph leak fixes, reliable Windows startup integration, and an expanded library of 22 verified acoustic switch profiles.
+
+---
+
+### ✨ What's New in v1.1.0
+
+- **🚀 In-Memory Audio Buffer Cache (`packCache`)**:
+  - Soundpacks and switch previews now cache decoded `AudioBuffer` objects in memory.
+  - Switching between switches or previewing in the library is now instantaneous (0 ms, zero disk I/O, zero CPU re-decode).
+  - Eliminates redundant file reading when toggling between favorites.
+
+- **🎹 5 New Switch Profiles (Total 22 Switches)**:
+  - *Durock Alpaca V2* (Smooth Linear)
+  - *Topre Realforce 45g* (Electro-Capacitive Tactile)
+  - *Alps SKCM Blue* (Vintage Tactile Click)
+  - *IBM Model M* (Membrane Buckling Spring)
+  - *Ticks Mechanical* (Precision Clockwork Novelty)
+
+- **⚡ Fast Zero-Modulo In-Memory XOR Descrambler**:
+  - Replaced modulo arithmetic (`% keyLen`) in the cryptographic stream descrambler with an incrementing index counter, achieving **~3–4× faster sample unpacking**.
+  - Asynchronous non-blocking file loading via Node `fs.promises.readFile` in Electron.
+
+- **🪟 Windows Startup & Multi-Monitor Fixes**:
+  - Added support for `PORTABLE_EXECUTABLE_FILE` so Windows registry autostart (`HKCU\...\Run`) correctly targets the actual portable `.exe` instead of temporary extraction paths.
+  - Normalized cursor coordinate mapping across multi-monitor displays so desktop-wide cursor panning no longer clamps prematurely on secondary screens.
+
+- **🧹 Audio Graph Lifecycle & Memory Leak Fix**:
+  - Fixed a node leak in Stereo Mode with Vertical Elevation where `BiquadFilterNode` remained attached to `masterGain`.
+  - Upgraded node disposal to native Web Audio API `source.onended` cleanup callbacks, removing per-keystroke `setTimeout` timer allocations.
+  - Fixed duplicate audio trigger when the app window is focused by gating `uIOhook` background IPC forwarding.
+  - Enhanced keycode translation in `buildUiohookKeyMap` for Arrow keys (`ArrowUp`, `ArrowDown`, `ArrowLeft`, `ArrowRight`) and punctuation.
+
+- **🏎️ Debounced Settings Persistence**:
+  - Slider adjustments (`Width`, `Keyboard Volume`, `Mouse Volume`, `Micro-Pitch Jitter`) now debounce `localStorage` serialization (180ms) rather than writing synchronously on every high-refresh-rate mouse tick.
+
+---
+
+### 📦 Included Release Packages
+
+| File | Type | Size | Description |
+| :--- | :---: | :---: | :--- |
+| **`Taptap Setup 1.1.0.exe`** | `NSIS Installer` | ~74.7 MB | Full Windows installer with Start Menu & Desktop shortcuts, clean uninstall, and startup registration. |
+| **`Taptap 1.1.0.exe`** | `Portable Binary` | ~74.4 MB | Single-file zero-install executable. Runs immediately anywhere on Windows. |
+
+---
+
+### 🔒 Cryptographic Checksums (SHA-256)
+
+```text
+2221F06324EECFB32BA8891EA533E61B4AB9F13593FA997ED8816399B3558754  Taptap Setup 1.1.0.exe
+DF50F00F7BD9C2405711C0913BCCEBA1711371D045CD16B960603A7E9844DAFF  Taptap 1.1.0.exe
+```
+
+---
+
+### 🌐 Instant Web Playground
+
+Want to try Taptap in your browser without installing anything?
+👉 **[Launch Live Web Demo](https://mightyiest.github.io/taptap/)**
+
+---
+
 # ✦ Taptap v1.0.0 — The Debut Release ✦
 
 Welcome to the initial official release of **Taptap** — a bespoke spatial surround sound companion that transforms every keystroke and mouse click into a rich, three-dimensional acoustic experience.
-
----
 
 ### ✨ Highlights & Innovations
 
@@ -36,28 +98,3 @@ Welcome to the initial official release of **Taptap** — a bespoke spatial surr
 - **🎨 Bespoke Beige & Royal Bordeaux Aesthetics**:
   - Frameless glassmorphic interface inspired by luxury Swiss horology and bespoke craftsmanship.
   - Fluid Light & Dark themes with tailored warm alabaster linen and royal bordeaux accents.
-
----
-
-### 📦 Included Release Packages
-
-| File | Type | Description |
-| :--- | :---: | :--- |
-| **`Taptap Setup 1.0.0.exe`** | `NSIS Installer` | Recommended for full desktop integration with Start Menu & Desktop shortcuts. |
-| **`Taptap 1.0.0.exe`** | `Portable Binary` | Single-file zero-install executable. Runs immediately anywhere on Windows. |
-
----
-
-### 🔒 Cryptographic Checksums (SHA-256)
-
-```text
-6B1712E9ADC9DCD22892C72FCE3491148735E19E124FD78824F4D1DFE9DC676B  Taptap Setup 1.0.0.exe
-5C56A4D05820FC658DCBB2DA53411B2ED58BCE6CFCE5BDADB715FA3200E5BF0A  Taptap 1.0.0.exe
-```
-
----
-
-### 🌐 Instant Web Playground
-
-Want to try Taptap in your browser without installing anything?
-👉 **[Launch Live Web Demo](https://mightyiest.github.io/taptap/)**

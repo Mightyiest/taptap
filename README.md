@@ -7,7 +7,7 @@
 ### *Bespoke Spatial Surround Sound Companion for Mechanical Keyboards & Mice*
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-mightyiest.github.io%2Ftaptap-721825.svg?style=for-the-badge)](https://mightyiest.github.io/taptap/)
-[![Release](https://img.shields.io/badge/Release-v1.0.0-8a2030.svg?style=for-the-badge)](https://github.com/Mightyiest/taptap/releases)
+[![Release](https://img.shields.io/badge/Release-v1.1.0-8a2030.svg?style=for-the-badge)](https://github.com/Mightyiest/taptap/releases)
 [![Electron](https://img.shields.io/badge/Electron-33.2.0-241917.svg?style=for-the-badge&logo=electron)](https://www.electronjs.org/)
 [![Web Audio API](https://img.shields.io/badge/Audio%20Engine-HRTF%203D%20Spatial-a02b3d.svg?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
 [![Single Instance Lock](https://img.shields.io/badge/Instance-Single_Lock_Active-bfa15f.svg?style=for-the-badge)](main.js)
@@ -33,7 +33,7 @@
 - **🌐 3D Binaural Soundstage**: Realistic spatial audio positioning using Web Audio API `PannerNode` with HRTF panning and Z-axis vertical elevation. Every keystroke is dynamically rendered across a 3D stereo acoustic field corresponding to keyboard physical key positions.
 - **🛡️ Cryptographic Acoustic Vault (`.tap`)**: Proprietary `TAPTAP_VAULT_V1` container architecture with symmetric in-memory stream descrambling and tokenized sample indexing. Audio assets remain protected with zero raw audio exposure.
 - **🔒 Single-Instance Architecture**: Built-in OS instance lock (`app.requestSingleInstanceLock`) prevents multiple processes from conflicting. Launching a second instance automatically focuses the existing session without duplicate audio or tray icons.
-- **⌨️ 17 Curated Luxury Switch Acoustics & 8 Mouse Models**: Handcrafted acoustic profiles spanning Linear (*Lofree Pulse/Surfer, Akko Piano Pro, Akko Cream Yellow, Gateron Ink Black/Red, Tealios, NovelKeys Cream, Keychron Red*), Tactile (*Holy Panda, Keychron Brown*), Clicky (*Kailh Box Navy, Akko Pink*), Muted/Novelty (*Lofree Void, IQUNIX MQ80, Lizard Pop*), plus 8 high-fidelity tactile mouse click profiles.
+- **⌨️ 22 Curated Luxury Switch Acoustics & 8 Mouse Models**: Handcrafted acoustic profiles spanning Linear (*Lofree Pulse/Surfer, Akko Piano Pro, Akko Cream Yellow, Akko CS Jelly Black, Durock Alpaca V2, Gateron Ink Black/Red, Tealios, NovelKeys Cream, Keychron Red*), Tactile (*Drop Holy Panda, Keychron Brown, Topre Realforce 45g, Alps SKCM Blue*), Clicky (*Kailh Box Navy, Akko Pink, IBM Model M*), Muted/Novelty (*Lofree Void, IQUNIX MQ80, Lizard Pop, Ticks Mechanical*), plus 8 high-fidelity tactile mouse click profiles.
 - **🎨 Cute & Friendly Aesthetic**: Warm alabaster linen (`#f4f0e6`) and royal bordeaux (`#721825`) palette, cute rounded Quicksand & Nunito typography, fluid light & dark themes, and a frameless glass-inspired window.
 - **⚡ Ultra Low-Latency Native Hooks**: Backed by `uiohook-napi` for global, non-intrusive background key and mouse event interception across any application.
 - **🎯 Interactive Typing Test & Soundstage Radar**: Real-time canvas radar visualizer tracking acoustic trajectory, paired with a live typing speed mini-game featuring 3-second countdowns, real-time WPM, accuracy tracking, and acoustic feedback.
@@ -49,7 +49,7 @@ Taptap is built to run both as a **standalone desktop companion** and as an **in
 | :--- | :---: | :---: |
 | **Instant In-Browser Sound Testing** | ✅ Yes (Zero installation) | ✅ Yes |
 | **Interactive Typing Mini-Game** | ✅ Yes | ✅ Yes |
-| **Full 17 Switch & 8 Mouse Vault** | ✅ Yes (In-memory decrypt) | ✅ Yes (In-memory decrypt) |
+| **Full 22 Switch & 8 Mouse Vault** | ✅ Yes (In-memory decrypt) | ✅ Yes (In-memory decrypt) |
 | **3D HRTF Soundstage & Radar Visualizer** | ✅ Yes | ✅ Yes |
 | **Light / Dark Luxury Themes** | ✅ Yes | ✅ Yes |
 | **System-Wide Background Hooks** | ❌ (Browser sandbox limited) | ✅ Yes (Active in all apps) |

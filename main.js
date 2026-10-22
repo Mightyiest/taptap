@@ -50,10 +50,11 @@ const appConfig = loadAppConfig();
 
 // --- Robust Windows Startup (Registry & Electron LoginItem Integration) ---
 function getAutoStartExecutablePath() {
-  if (app.isPackaged) {
-    return `"${process.execPath}" --hidden`;
+  const targetExe = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
+  if (app.isPackaged || process.env.PORTABLE_EXECUTABLE_FILE) {
+    return `"${targetExe}" --hidden`;
   }
-  return `"${process.execPath}" "${path.resolve(__dirname)}" --hidden`;
+  return `"${targetExe}" "${path.resolve(__dirname)}" --hidden`;
 }
 
 function checkWindowsAutoStart() {
@@ -90,12 +91,17 @@ function setWindowsAutoStart(enable) {
     appConfig.startupLaunch = !!enable;
     saveAppConfig(appConfig);
 
+    const actualExe = process.env.PORTABLE_EXECUTABLE_FILE || process.execPath;
+    const launchArgs = (app.isPackaged || process.env.PORTABLE_EXECUTABLE_FILE)
+      ? ['--hidden']
+      : [path.resolve(__dirname), '--hidden'];
+
     try {
       app.setLoginItemSettings({
         openAtLogin: !!enable,
         openAsHidden: true,
-        path: process.execPath,
-        args: ['--hidden']
+        path: actualExe,
+        args: launchArgs
       });
     } catch (e) {
       console.warn('[Taptap] Electron setLoginItemSettings error:', e.message);
@@ -188,6 +194,14 @@ function buildUiohookKeyMap(uKeys) {
       map[code] = 'Enter';
     } else if (name === 'Grave' || name === 'Tilde') {
       map[code] = 'Backquote';
+    } else if (name === 'Up') {
+      map[code] = 'ArrowUp';
+    } else if (name === 'Down') {
+      map[code] = 'ArrowDown';
+    } else if (name === 'Left') {
+      map[code] = 'ArrowLeft';
+    } else if (name === 'Right') {
+      map[code] = 'ArrowRight';
     } else {
       map[code] = name;
     }
@@ -407,6 +421,8 @@ if (gotSingleInstanceLock) {
 
     uIOhook.on('keydown', (e) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        // Skip background hook forwarding when window is focused to prevent duplicate events & key desync
+        if (mainWindow.isFocused()) return;
         const code = keyMap[e.keycode] || 'KeyA';
         mainWindow.webContents.send('global-keydown', { code });
       }
@@ -414,6 +430,7 @@ if (gotSingleInstanceLock) {
 
     uIOhook.on('keyup', (e) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isFocused()) return;
         const code = keyMap[e.keycode] || 'KeyA';
         mainWindow.webContents.send('global-keyup', { code });
       }

@@ -12,7 +12,7 @@
 const VAULT_MAGIC = 'TAPTAP_VAULT_V1';
 const VAULT_KEY = new TextEncoder().encode('TaptapAcousticVault2026@BespokeLuxuryAudioKey#X9!');
 
-// Curated Registry of 17 Acoustic Mechanical Keyboard Switches
+// Curated Registry of 22 Acoustic Mechanical Keyboard Switches
 const KEYBOARD_SWITCHES = [
   // Linear
   { id: 'pulse', name: 'Lofree Flow 2 (Pulse)', brand: 'lofree', brandName: 'Lofree', brandIcon: 'assets/brands/lofree.png', feel: 'Smooth POM', category: 'linear', tag: 'Linear', sound: 'Creamy Thock', file: 'vk_pls.tap' },
@@ -20,6 +20,7 @@ const KEYBOARD_SWITCHES = [
   { id: 'akko-piano-pro', name: 'Akko Piano Pro', brand: 'akko', brandName: 'Akko', brandIcon: 'assets/brands/akko.png', feel: 'Deep Creamy', category: 'linear', tag: 'Linear', sound: 'Creamy Thock', file: 'vk_akko_piano_pro.tap' },
   { id: 'akko-v3-pro-cream-yellow', name: 'Akko V3 Cream Yellow', brand: 'akko', brandName: 'Akko', brandIcon: 'assets/brands/akko.png', feel: 'Thocky Linear', category: 'linear', tag: 'Linear', sound: 'Deep Thock', file: 'vk_akko_cream_yellow.tap' },
   { id: 'akko-cs-jelly-black', name: 'Akko CS Jelly Black', brand: 'akko', brandName: 'Akko', brandIcon: 'assets/brands/akko.png', feel: 'Deep Clack', category: 'linear', tag: 'Linear', sound: 'Solid Clack', file: 'vk_akko_jelly_black.tap' },
+  { id: 'durock-alpaca', name: 'Durock Alpaca V2', brand: 'durock', brandName: 'Durock', brandIcon: 'assets/icon.png', feel: 'Smooth Alpaca', category: 'linear', tag: 'Linear', sound: 'Buttery Linear', file: 'vk_durock_alpaca.tap' },
   { id: 'gateron-ink-black', name: 'Gateron Ink Black', brand: 'gateron', brandName: 'Gateron', brandIcon: 'assets/brands/gateron.png', feel: 'Heavy Smooth', category: 'linear', tag: 'Linear', sound: 'Deep Thock', file: 'vk_gateron_ink_black.tap' },
   { id: 'gateron-ink-red', name: 'Gateron Ink Red', brand: 'gateron', brandName: 'Gateron', brandIcon: 'assets/brands/gateron.png', feel: 'Light Smooth', category: 'linear', tag: 'Linear', sound: 'Soft Linear', file: 'vk_gateron_ink_red.tap' },
   { id: 'gateron-turquoise-tealios', name: 'Gateron Tealios', brand: 'gateron', brandName: 'Gateron', brandIcon: 'assets/brands/gateron.png', feel: 'Crisp Linear', category: 'linear', tag: 'Linear', sound: 'Crisp Smooth', file: 'vk_gateron_tealios.tap' },
@@ -29,15 +30,19 @@ const KEYBOARD_SWITCHES = [
   // Tactile
   { id: 'drop-holy-panda', name: 'Drop Holy Panda', brand: 'drop', brandName: 'Drop', brandIcon: 'assets/brands/drop.png', feel: 'Snappy Pop', category: 'tactile', tag: 'Tactile', sound: 'Heavy Thock', file: 'vk_holy_panda.tap' },
   { id: 'keychron-k2-max-brown', name: 'Keychron K2 Brown', brand: 'keychron', brandName: 'Keychron', brandIcon: 'assets/brands/keychron.png', feel: 'Gentle Bumpy', category: 'tactile', tag: 'Tactile', sound: 'Gentle Tactile', file: 'vk_keychron_brown.tap' },
+  { id: 'topre-classic', name: 'Topre Realforce 45g', brand: 'topre', brandName: 'Topre', brandIcon: 'assets/icon.png', feel: 'Capacitive Dome', category: 'tactile', tag: 'Tactile', sound: 'Acoustic Thump', file: 'vk_topre.tap' },
+  { id: 'alps-skcm-blue', name: 'Alps SKCM Blue', brand: 'alps', brandName: 'Alps', brandIcon: 'assets/icon.png', feel: 'Tactile Click', category: 'tactile', tag: 'Tactile', sound: 'Crisp Alps Pop', file: 'vk_alps_blue.tap' },
 
   // Clicky
   { id: 'kailh-box-navy', name: 'Kailh Box Navy', brand: 'kailh', brandName: 'Kailh', brandIcon: 'assets/brands/kailh.jpg', feel: 'Thick Clickbar', category: 'clicky', tag: 'Clicky', sound: 'Deep Click', file: 'vk_kailh_navy.tap' },
   { id: 'akko-clicky-pink', name: 'Akko Clicky Pink', brand: 'akko', brandName: 'Akko', brandIcon: 'assets/brands/akko.png', feel: 'Bright Clicky', category: 'clicky', tag: 'Clicky', sound: 'Bright Pop', file: 'vk_akko_pink.tap' },
+  { id: 'ibm-buckling-spring', name: 'IBM Model M (Buckling)', brand: 'ibm', brandName: 'IBM', brandIcon: 'assets/icon.png', feel: 'Buckling Spring', category: 'clicky', tag: 'Clicky', sound: 'Classic Clack', file: 'vk_ibm_buckling.tap' },
 
   // Muted & Novelty
   { id: 'void', name: 'Lofree Flow 2 (Void)', brand: 'lofree', brandName: 'Lofree', brandIcon: 'assets/brands/lofree.png', feel: 'Silent Linear', category: 'novelty', tag: 'Muted', sound: 'Muted Whispers', file: 'vk_voi.tap' },
   { id: 'iqunix-mq80', name: 'IQUNIX MQ80', brand: 'iqunix', brandName: 'IQUNIX', brandIcon: 'assets/brands/IQUNIX.png', feel: 'Gasket Thock', category: 'novelty', tag: 'Muted', sound: 'Gasket Acoustic', file: 'vk_iqunix_mq80.tap' },
-  { id: 'lizard', name: 'Lizard Pop', brand: 'lizard', brandName: 'Lizard Pop', brandIcon: 'assets/brands/lizard.jpg', feel: 'Playful Pop', category: 'novelty', tag: 'Novelty', sound: 'Bubble Pop', file: 'vk_lizard.tap' }
+  { id: 'lizard', name: 'Lizard Pop', brand: 'lizard', brandName: 'Lizard Pop', brandIcon: 'assets/brands/lizard.jpg', feel: 'Playful Pop', category: 'novelty', tag: 'Novelty', sound: 'Bubble Pop', file: 'vk_lizard.tap' },
+  { id: 'ticks', name: 'Ticks Mechanical', brand: 'ticks', brandName: 'Ticks', brandIcon: 'assets/icon.png', feel: 'Mechanical Tick', category: 'novelty', tag: 'Novelty', sound: 'Precise Ticks', file: 'vk_ticks.tap' }
 ];
 
 // Curated Keyboard Layout Registry
@@ -554,6 +559,8 @@ class TaptapAudioEngine {
     // Cached AudioBuffers
     this.keyboardBuffers = {};
     this.mouseBuffers = {};
+    this.packCache = new Map();
+    this.loadingPromises = new Map();
 
     // Active Keyboard Layout & Dynamic Physical Key Maps
     this.activeLayoutId = 'ansi-68';
@@ -657,19 +664,23 @@ class TaptapAudioEngine {
 
   /**
    * In-Memory Fast Descrambler for .tap Vault Containers
+   * High-throughput zero-modulo arithmetic loop
    */
   descrambleBytes(uint8Array) {
-    const output = new Uint8Array(uint8Array.length);
+    const len = uint8Array.length;
+    const output = new Uint8Array(len);
     const keyLen = VAULT_KEY.length;
-    for (let i = 0; i < uint8Array.length; i++) {
-      output[i] = uint8Array[i] ^ VAULT_KEY[i % keyLen];
+    let k = 0;
+    for (let i = 0; i < len; i++) {
+      output[i] = uint8Array[i] ^ VAULT_KEY[k];
+      k = (k + 1 === keyLen) ? 0 : (k + 1);
     }
     return output.buffer;
   }
 
   /**
    * Universal Asset Byte Loader
-   * Supports direct fs reading in Electron and fetch in browser
+   * Supports asynchronous fs reading in Electron without blocking UI thread
    */
   async readAssetBytes(assetPath) {
     if (typeof window !== 'undefined' && window.require) {
@@ -679,7 +690,7 @@ class TaptapAudioEngine {
         const basePath = (typeof __dirname !== 'undefined') ? __dirname : process.cwd();
         const fullPath = path.isAbsolute(assetPath) ? assetPath : path.resolve(basePath, assetPath);
         if (fs.existsSync(fullPath)) {
-          const buf = fs.readFileSync(fullPath);
+          const buf = await fs.promises.readFile(fullPath);
           return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
         }
       } catch (fsErr) {
@@ -693,72 +704,118 @@ class TaptapAudioEngine {
   }
 
   /**
-   * Load Obfuscated .tap Keyboard Pack
+   * Load Obfuscated .tap Keyboard Pack with In-Memory LRU Cache
    */
   async loadKeyboardPack(packName) {
     this.initContext();
     this.activeKeyboardPack = packName;
 
-    const fileName = VAULT_PACK_MAP[packName] || `vk_${packName}.tap`;
-    const vaultUrl = `assets/vault/${fileName}`;
-    try {
-      const arrayBuffer = await this.readAssetBytes(vaultUrl);
-      const view = new DataView(arrayBuffer);
-
-      // Verify Magic Header (16 bytes)
-      const magicBytes = new Uint8Array(arrayBuffer, 0, 16);
-      const magicStr = new TextDecoder().decode(magicBytes).replace(/\0/g, '');
-      if (magicStr !== VAULT_MAGIC) {
-        throw new Error(`Invalid vault header: ${magicStr}`);
-      }
-
-      // Read Manifest Length (4 bytes Big-Endian)
-      const manifestLen = view.getUint32(16, false);
-      const manifestBytes = new Uint8Array(arrayBuffer, 20, manifestLen);
-      const manifestJson = new TextDecoder().decode(manifestBytes);
-      const manifest = JSON.parse(manifestJson);
-
-      const dataBaseOffset = 20 + manifestLen;
-      const newBuffers = {};
-      const decodePromises = [];
-
-      for (const [keyToken, info] of Object.entries(manifest)) {
-        // Extract scrambled chunk and descramble in memory
-        const scrambledChunk = new Uint8Array(arrayBuffer, dataBaseOffset + info.offset, info.length);
-        const rawArrayBuffer = this.descrambleBytes(scrambledChunk);
-
-        // Resolve token to logical key identifier (e.g. 'k01_d1' -> 'alpha_down')
-        const baseToken = keyToken.replace(/_\d+$/, '').replace(/\d+$/, '');
-        const resolvedKey = VAULT_KEY_TOKEN_MAP[baseToken] || VAULT_KEY_TOKEN_MAP[keyToken] || 'alpha_down';
-
-        decodePromises.push(
-          this.ctx.decodeAudioData(rawArrayBuffer)
-            .then(audioBuf => {
-              if (!newBuffers[resolvedKey]) {
-                newBuffers[resolvedKey] = [];
-              }
-              newBuffers[resolvedKey].push(audioBuf);
-              newBuffers[keyToken] = audioBuf;
-            })
-            .catch(e => console.warn(`[Vault] Decode failed for ${keyToken}`, e))
-        );
-      }
-
-      await Promise.all(decodePromises);
-      this.keyboardBuffers = newBuffers;
-      console.log(`[Taptap Vault] Decrypted & loaded keyboard pack: ${packName} (${Object.keys(manifest).length} samples ready)`);
-    } catch (err) {
-      console.warn(`[Vault Loader] Failed to load pack ${packName}:`, err.message);
+    // Fast return from memory cache (0ms instant switch)
+    if (this.packCache.has(packName)) {
+      this.keyboardBuffers = this.packCache.get(packName);
+      return;
     }
+
+    // Deduplicate concurrent loads for the same pack
+    if (this.loadingPromises.has(packName)) {
+      await this.loadingPromises.get(packName);
+      if (this.packCache.has(packName)) {
+        this.keyboardBuffers = this.packCache.get(packName);
+      }
+      return;
+    }
+
+    const loadPromise = (async () => {
+      const fileName = VAULT_PACK_MAP[packName] || `vk_${packName}.tap`;
+      const vaultUrl = `assets/vault/${fileName}`;
+      try {
+        const arrayBuffer = await this.readAssetBytes(vaultUrl);
+        const view = new DataView(arrayBuffer);
+
+        // Verify Magic Header (16 bytes)
+        const magicBytes = new Uint8Array(arrayBuffer, 0, 16);
+        const magicStr = new TextDecoder().decode(magicBytes).replace(/\0/g, '');
+        if (magicStr !== VAULT_MAGIC) {
+          throw new Error(`Invalid vault header: ${magicStr}`);
+        }
+
+        // Read Manifest Length (4 bytes Big-Endian)
+        const manifestLen = view.getUint32(16, false);
+        const manifestBytes = new Uint8Array(arrayBuffer, 20, manifestLen);
+        const manifestJson = new TextDecoder().decode(manifestBytes);
+        const manifest = JSON.parse(manifestJson);
+
+        const dataBaseOffset = 20 + manifestLen;
+        const newBuffers = {};
+        const decodePromises = [];
+
+        for (const [keyToken, info] of Object.entries(manifest)) {
+          // Extract scrambled chunk and descramble in memory
+          const scrambledChunk = new Uint8Array(arrayBuffer, dataBaseOffset + info.offset, info.length);
+          const rawArrayBuffer = this.descrambleBytes(scrambledChunk);
+
+          // Resolve token to logical key identifier (e.g. 'k01_d1' -> 'alpha_down')
+          const baseToken = keyToken.replace(/_\d+$/, '').replace(/\d+$/, '');
+          const resolvedKey = VAULT_KEY_TOKEN_MAP[baseToken] || VAULT_KEY_TOKEN_MAP[keyToken] || 'alpha_down';
+
+          decodePromises.push(
+            this.ctx.decodeAudioData(rawArrayBuffer)
+              .then(audioBuf => {
+                if (!newBuffers[resolvedKey]) {
+                  newBuffers[resolvedKey] = [];
+                }
+                newBuffers[resolvedKey].push(audioBuf);
+                newBuffers[keyToken] = audioBuf;
+              })
+              .catch(e => console.warn(`[Vault] Decode failed for ${keyToken}`, e))
+          );
+        }
+
+        await Promise.all(decodePromises);
+        this.packCache.set(packName, newBuffers);
+        if (this.activeKeyboardPack === packName) {
+          this.keyboardBuffers = newBuffers;
+        }
+        console.log(`[Taptap Vault] Decrypted & cached keyboard pack: ${packName} (${Object.keys(manifest).length} samples)`);
+      } catch (err) {
+        console.warn(`[Vault Loader] Failed to load pack ${packName}:`, err.message);
+      } finally {
+        this.loadingPromises.delete(packName);
+      }
+    })();
+
+    this.loadingPromises.set(packName, loadPromise);
+    await loadPromise;
   }
 
   /**
    * Preview a switch acoustic profile (plays test downstroke + upstroke)
+   * Uses cached buffers if available for zero disk I/O and zero latency
    */
   async previewSwitch(switchId) {
     this.initContext();
     const sw = KEYBOARD_SWITCHES.find(s => s.id === switchId);
     if (!sw) return;
+
+    // If already loaded into cache, play immediately with 0ms delay!
+    if (this.packCache.has(switchId)) {
+      const bufs = this.packCache.get(switchId);
+      const downEntry = bufs['alpha_down'] || bufs['k01_d1'] || bufs['k01_d'];
+      const upEntry = bufs['alpha_up'] || bufs['k01_u1'] || bufs['k01_u'];
+
+      const downBuf = Array.isArray(downEntry) ? downEntry[0] : downEntry;
+      const upBuf = Array.isArray(upEntry) ? upEntry[0] : upEntry;
+
+      if (downBuf) {
+        this.playBuffer(downBuf, 0.0, 1.0, this.keyboardVolume, 'KeyG');
+      }
+      if (upBuf && this.playUpstrokes) {
+        setTimeout(() => {
+          this.playBuffer(upBuf, 0.0, 1.0, this.keyboardVolume * 0.75, 'KeyG');
+        }, 95);
+      }
+      return;
+    }
 
     const fileName = sw.file || (VAULT_PACK_MAP[switchId] || `vk_${switchId}.tap`);
     const vaultUrl = `assets/vault/${fileName}`;
@@ -1036,6 +1093,7 @@ class TaptapAudioEngine {
         }
       }
 
+      panner._tailNode = tailNode;
       tailNode.connect(this.masterGain);
       return panner;
     }
@@ -1055,9 +1113,24 @@ class TaptapAudioEngine {
 
     source.start(this.ctx.currentTime);
 
-    setTimeout(() => {
-      spatialNode.disconnect();
-    }, (buffer.duration / rate + 0.1) * 1000);
+    // Native Web Audio lifecycle cleanup with zero timer overhead and zero leaked nodes
+    let cleanedUp = false;
+    const cleanup = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
+      try {
+        source.disconnect();
+        pGain.disconnect();
+        if (spatialNode._tailNode && spatialNode._tailNode !== spatialNode) {
+          spatialNode._tailNode.disconnect();
+        }
+        spatialNode.disconnect();
+      } catch (e) {}
+    };
+
+    source.onended = cleanup;
+    // Safety fallback timer in case onended is skipped in background
+    setTimeout(cleanup, (buffer.duration / rate + 0.25) * 1000);
   }
 
   synthesizeMouseSound(scaledPan, rate) {
@@ -1069,7 +1142,8 @@ class TaptapAudioEngine {
     osc.frequency.exponentialRampToValueAtTime(320, now + 0.02);
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.7, now);
+    const effectiveGain = 0.7 * this.mouseVolume;
+    gain.gain.setValueAtTime(effectiveGain, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
 
     osc.connect(gain);
@@ -1077,7 +1151,16 @@ class TaptapAudioEngine {
     osc.start(now);
     osc.stop(now + 0.02);
 
-    setTimeout(() => spatialNode.disconnect(), 100);
+    setTimeout(() => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+        if (spatialNode._tailNode && spatialNode._tailNode !== spatialNode) {
+          spatialNode._tailNode.disconnect();
+        }
+        spatialNode.disconnect();
+      } catch (e) {}
+    }, 80);
   }
 
   synthesizeKeyboardSound(code, scaledPan, rate, isUpstroke) {
@@ -1094,7 +1177,8 @@ class TaptapAudioEngine {
     osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + duration);
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(isUpstroke ? 0.25 : 0.55, now);
+    const baseGain = isUpstroke ? 0.25 : 0.55;
+    gain.gain.setValueAtTime(baseGain * this.keyboardVolume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     osc.connect(gain);
@@ -1102,7 +1186,16 @@ class TaptapAudioEngine {
     osc.start(now);
     osc.stop(now + duration);
 
-    setTimeout(() => spatialNode.disconnect(), 100);
+    setTimeout(() => {
+      try {
+        osc.disconnect();
+        gain.disconnect();
+        if (spatialNode._tailNode && spatialNode._tailNode !== spatialNode) {
+          spatialNode._tailNode.disconnect();
+        }
+        spatialNode.disconnect();
+      } catch (e) {}
+    }, 90);
   }
 }
 

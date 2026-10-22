@@ -247,7 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // --- PERSISTENCE: SAVE & RESTORE AUDIO SETTINGS ---
+  let saveSettingsTimer = null;
+  function scheduleSaveSettings() {
+    clearTimeout(saveSettingsTimer);
+    saveSettingsTimer = setTimeout(saveSettings, 180);
+  }
+
   function saveSettings() {
+    clearTimeout(saveSettingsTimer);
     if (!audio) return;
     const settings = {
       keyboardVolume: rngKbVolume ? parseInt(rngKbVolume.value, 10) : 85,
@@ -769,8 +776,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Dynamic Cursor Tracking
   let lastMouseXRatio = 0.5;
   window.addEventListener('mousemove', (e) => {
+    if (!audio || !audio.dynamicCursorTracking) return;
     lastMouseXRatio = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
-  });
+  }, { passive: true });
 
   function getMousePan(bias = 0) {
     if (audio.dynamicCursorTracking) {
@@ -911,10 +919,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ipc.on('global-mousedown', (event, { code, x, y }) => {
       let pan = null;
-      if (typeof x === 'number' && window.screen && audio.dynamicCursorTracking) {
-        const screenW = window.screen.width || 1920;
-        const xRatio = Math.max(0, Math.min(1, x / screenW));
-        pan = (xRatio - 0.5) * 2.0; // Dynamic stereo panning across entire desktop monitor!
+      if (typeof x === 'number' && audio && audio.dynamicCursorTracking) {
+        const screenW = (window.screen && window.screen.width) ? window.screen.width : 1920;
+        const clampedX = Math.max(0, Math.min(screenW, x));
+        const xRatio = clampedX / screenW;
+        pan = (xRatio - 0.5) * 2.0;
       }
       onActionDown(code, code.replace('Mouse', ''), pan);
     });
@@ -1197,36 +1206,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 9. CONTROLS & SLIDERS (SEPARATE KEYBOARD & MOUSE) ---
   if (rngWidth) {
-    const handleWidth = (e) => {
+    rngWidth.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
       if (txtWidth) txtWidth.textContent = `${val}%`;
       audio.setStereoWidth(val / 100);
+      scheduleSaveSettings();
+    });
+    rngWidth.addEventListener('change', (e) => {
       saveSettings();
-    };
-    rngWidth.addEventListener('input', handleWidth);
-    rngWidth.addEventListener('change', handleWidth);
+    });
   }
 
   if (rngKbVolume) {
-    const handleKbVol = (e) => {
+    rngKbVolume.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
       if (txtKbVolume) txtKbVolume.textContent = `${val}%`;
       audio.setKeyboardVolume(val / 100);
+      scheduleSaveSettings();
+    });
+    rngKbVolume.addEventListener('change', (e) => {
       saveSettings();
-    };
-    rngKbVolume.addEventListener('input', handleKbVol);
-    rngKbVolume.addEventListener('change', handleKbVol);
+    });
   }
 
   if (rngMouseVolume) {
-    const handleMouseVol = (e) => {
+    rngMouseVolume.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
       if (txtMouseVolume) txtMouseVolume.textContent = `${val}%`;
       audio.setMouseVolume(val / 100);
+      scheduleSaveSettings();
+    });
+    rngMouseVolume.addEventListener('change', (e) => {
       saveSettings();
-    };
-    rngMouseVolume.addEventListener('input', handleMouseVol);
-    rngMouseVolume.addEventListener('change', handleMouseVol);
+    });
   }
 
   // Keyboard Mute State Handler (Synchronized across Soundstage pill & Settings toggle)
@@ -1282,14 +1294,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (rngJitter) {
-    const handleJitter = (e) => {
+    rngJitter.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
       if (txtJitter) txtJitter.textContent = `±${(val / 10).toFixed(1)}%`;
       audio.setPitchJitter(val / 1000);
+      scheduleSaveSettings();
+    });
+    rngJitter.addEventListener('change', () => {
       saveSettings();
-    };
-    rngJitter.addEventListener('input', handleJitter);
-    rngJitter.addEventListener('change', handleJitter);
+    });
   }
 
   if (chkUpstroke) {
