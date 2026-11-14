@@ -12,6 +12,21 @@
 const VAULT_MAGIC = 'TAPTAP_VAULT_V1';
 const VAULT_KEY = new TextEncoder().encode('TaptapAcousticVault2026@BespokeLuxuryAudioKey#X9!');
 
+const IS_TAURI = typeof window !== 'undefined' && Boolean(window.__TAURI_INTERNALS__ || window.__TAURI__);
+
+function tauriInvoke(cmd, args = {}) {
+  if (!IS_TAURI) return Promise.resolve(null);
+  try {
+    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === 'function') {
+      return window.__TAURI__.core.invoke(cmd, args);
+    }
+    if (window.__TAURI_INTERNALS__ && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
+      return window.__TAURI_INTERNALS__.invoke(cmd, args);
+    }
+  } catch (e) { }
+  return Promise.resolve(null);
+}
+
 // Curated Registry of 22 Acoustic Mechanical Keyboard Switches
 const KEYBOARD_SWITCHES = [
   // Linear
@@ -571,9 +586,49 @@ class TaptapAudioEngine {
     // 3D Binaural Vertical Elevation (Z-Axis Depth & Y-Axis Incline)
     this.verticalElevation = true;
     this.elevationDepth = 1.0;
+
+    // Native Rust Audio Bridge State (Tauri mode)
+    this.isTauri = IS_TAURI;
+    this._suppressNativeSync = IS_TAURI;
+    this._syncTimer = null;
+  }
+
+  setSuppressNativeSync(suppress) {
+    this._suppressNativeSync = !!suppress;
+  }
+
+  scheduleNativeSync() {
+    if (!this.isTauri || this._suppressNativeSync) return;
+    clearTimeout(this._syncTimer);
+    this._syncTimer = setTimeout(() => {
+      this.syncNativeConfig();
+    }, 30);
+  }
+
+  syncNativeConfig() {
+    if (!this.isTauri || this._suppressNativeSync) return Promise.resolve(null);
+    return tauriInvoke('sync_audio_config', {
+      args: {
+        keyboardVolume: Math.round(this.keyboardVolume * 100),
+        mouseVolume: Math.round(this.mouseVolume * 100),
+        stereoWidth: Math.round(this.stereoWidth * 100),
+        pitchJitter: Math.round(this.pitchJitter * 1000),
+        keyboardMuted: !!this.keyboardMuted,
+        mouseMuted: !!this.mouseMuted,
+        masterMuted: !!this.isMuted,
+        activeKeyboardPack: this.activeKeyboardPack || 'pulse',
+        activeMousePack: this.activeMousePack || 'Bloody V8',
+        playUpstrokes: !!this.playUpstrokes,
+        dynamicCursorTracking: !!this.dynamicCursorTracking,
+        verticalElevation: !!this.verticalElevation,
+        spatialMode: this.mode || 'hrtf',
+        keyboardLayout: this.activeLayoutId || 'ansi-68'
+      }
+    }).catch(() => null);
   }
 
   initContext() {
+    if (this.isTauri) return;
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AudioCtx({ latencyHint: 'interactive' });
@@ -613,30 +668,37 @@ class TaptapAudioEngine {
 
   setKeyboardVolume(val) {
     this.keyboardVolume = Math.max(0, Math.min(1, val));
+    this.scheduleNativeSync();
   }
 
   setMouseVolume(val) {
     this.mouseVolume = Math.max(0, Math.min(1, val));
+    this.scheduleNativeSync();
   }
 
   setKeyboardMuted(muted) {
     this.keyboardMuted = !!muted;
+    this.scheduleNativeSync();
   }
 
   setMouseMuted(muted) {
     this.mouseMuted = !!muted;
+    this.scheduleNativeSync();
   }
 
   setStereoWidth(val) {
     this.stereoWidth = Math.max(0, Math.min(2.0, val));
+    this.scheduleNativeSync();
   }
 
   setPitchJitter(val) {
     this.pitchJitter = Math.max(0, Math.min(0.08, val));
+    this.scheduleNativeSync();
   }
 
   setMode(mode) {
     this.mode = mode === 'stereo' ? 'stereo' : 'hrtf';
+    this.scheduleNativeSync();
   }
 
   setMuted(muted) {
@@ -644,22 +706,27 @@ class TaptapAudioEngine {
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.volume, this.ctx.currentTime);
     }
+    this.scheduleNativeSync();
   }
 
   setUpstrokes(enabled) {
     this.playUpstrokes = !!enabled;
+    this.scheduleNativeSync();
   }
 
   setDynamicCursorTracking(enabled) {
     this.dynamicCursorTracking = !!enabled;
+    this.scheduleNativeSync();
   }
 
   setVerticalElevation(enabled) {
     this.verticalElevation = !!enabled;
+    this.scheduleNativeSync();
   }
 
   setElevationDepth(val) {
     this.elevationDepth = Math.max(0, Math.min(2.0, val));
+    this.scheduleNativeSync();
   }
 
   /**
@@ -709,6 +776,13 @@ class TaptapAudioEngine {
   async loadKeyboardPack(packName) {
     this.initContext();
     this.activeKeyboardPack = packName;
+
+    if (this.isTauri) {
+      if (!this._suppressNativeSync) {
+        await tauriInvoke('set_keyboard_pack', { packName }).catch(() => null);
+      }
+      return;
+    }
 
     // Fast return from memory cache (0ms instant switch)
     if (this.packCache.has(packName)) {
@@ -793,6 +867,10 @@ class TaptapAudioEngine {
    * Uses cached buffers if available for zero disk I/O and zero latency
    */
   async previewSwitch(switchId) {
+    if (this.isTauri) {
+      await tauriInvoke('preview_switch', { switchId }).catch(() => null);
+      return;
+    }
     this.initContext();
     const sw = KEYBOARD_SWITCHES.find(s => s.id === switchId);
     if (!sw) return;
@@ -860,6 +938,13 @@ class TaptapAudioEngine {
     this.initContext();
     this.activeMousePack = mousePackName;
 
+    if (this.isTauri) {
+      if (!this._suppressNativeSync) {
+        await tauriInvoke('set_mouse_pack', { mousePackName }).catch(() => null);
+      }
+      return;
+    }
+
     // Check if already in cache
     if (this.mouseBuffers[mousePackName]) {
       return;
@@ -925,6 +1010,7 @@ class TaptapAudioEngine {
     const { spatialMap, rowMap } = computeSpatialMapsForLayout(this.activeLayoutId);
     this.keySpatialMap = spatialMap;
     this.keyRowMap = rowMap;
+    this.scheduleNativeSync();
     console.log(`[Taptap Audio Engine] Activated layout '${this.activeLayoutId}' with ${Object.keys(spatialMap).length} mapped keys`);
   }
 
@@ -960,8 +1046,35 @@ class TaptapAudioEngine {
   /**
    * Play spatial sound for downstroke or upstroke.
    */
-  trigger(code, isUpstroke = false, customPan = null) {
+  trigger(code, isUpstroke = false, customPan = null, playAudio = true, dedupe = false) {
     if (this.isMuted) return null;
+
+    if (this.isTauri) {
+      const isMouse = code && code.startsWith('Mouse');
+      if (isMouse && (this.mouseMuted || isUpstroke)) return null;
+      if (!isMouse && (this.keyboardMuted || (isUpstroke && !this.playUpstrokes))) return null;
+
+      const rawPan = (customPan !== null && customPan !== undefined) ? customPan : this.getKeyPan(code);
+      const scaledPan = Math.max(-1.0, Math.min(1.0, rawPan * this.stereoWidth));
+      const row = this.getKeyRow(code);
+
+      if (playAudio) {
+        tauriInvoke('trigger_sound', {
+          code,
+          isUpstroke: !!isUpstroke,
+          customPan: (customPan !== null && customPan !== undefined) ? customPan : null,
+          dedupe: !!dedupe
+        }).catch(() => null);
+      }
+
+      return {
+        code,
+        pan: scaledPan,
+        rawPan,
+        row,
+        isUpstroke: !!isUpstroke
+      };
+    }
 
     this.initContext();
 

@@ -104,11 +104,12 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: var(--bg-surface);
   overflow: hidden;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
   background-color: var(--bg-surface);
   color: var(--text-primary);
   display: flex;
@@ -118,29 +119,22 @@ body {
 }
 
 /* ==========================================================================
-   SEAMLESS COMPACT WINDOW SHELL (440px × 565px, Expanded 640px × 710px)
+   FIXED LUXURY COMPANION WINDOW SHELL (540px × 650px Desktop, Fluid Responsive)
    ========================================================================== */
 .window-frame {
   width: 100%;
   height: 100%;
-  max-width: 440px;
-  max-height: 605px;
+  max-width: 540px;
+  max-height: 650px;
   background: var(--bg-surface);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-              background-color var(--transition-smooth);
+  transition: background-color var(--transition-smooth);
 }
 
-.window-frame.keyboard-expanded {
-  max-width: 640px;
-  max-height: 710px;
-}
-
-/* Native Electron Window: Edge-to-edge frameless perfection */
+/* Native Desktop Window (Tauri / Electron): Edge-to-edge fixed companion frame */
 body.is-electron {
   padding: 0 !important;
   margin: 0 !important;
@@ -156,8 +150,10 @@ body.is-electron .window-frame {
   max-width: none !important;
   max-height: none !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 0 0 1px var(--border-subtle) !important;
   border: none !important;
+  outline: none !important;
+  transition: background-color var(--transition-smooth) !important;
 }
 
 /* Web Browser Preview (When running on GitHub Pages or browser preview) */
@@ -171,28 +167,21 @@ body:not(.is-electron) .window-header {
   cursor: default;
 }
 
-@media screen and (min-width: 520px) and (min-height: 600px) {
+@media screen and (min-width: 580px) and (min-height: 670px) {
   body:not(.is-electron) {
     background-color: var(--bg-app);
-    padding: 24px;
+    padding: 20px;
   }
   body:not(.is-electron) .window-frame {
-    width: 440px;
-    height: 605px;
+    width: 540px;
+    height: 650px;
     border-radius: var(--radius-window);
     box-shadow: var(--shadow-window);
     border: 1px solid var(--border-divider);
-    transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-                height 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-                background-color var(--transition-smooth);
-  }
-  body:not(.is-electron) .window-frame.keyboard-expanded {
-    width: 640px;
-    height: 730px;
   }
 }
 
-@media screen and (max-width: 519px) {
+@media screen and (max-width: 579px), screen and (max-height: 669px) {
   body:not(.is-electron) {
     background-color: var(--bg-surface);
     padding: 0;
@@ -228,7 +217,9 @@ body:not(.is-electron) .window-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
 }
 
 .brand-icon {
@@ -241,10 +232,10 @@ body:not(.is-electron) .window-header {
 }
 
 .brand-name {
-  font-family: "Quicksand", "Plus Jakarta Sans", -apple-system, sans-serif;
+  font-family: "Cinzel", "Quicksand", "Plus Jakarta Sans", -apple-system, sans-serif;
   font-size: 1.02rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   color: var(--text-primary);
 }
 
@@ -313,7 +304,7 @@ body:not(.is-electron) .window-header {
    SEGMENTED NAVIGATION TABS (Apple Capsule Picker)
    ========================================================================== */
 .segmented-nav-wrap {
-  padding: 10px 16px 6px;
+  padding: 8px 14px 4px;
   flex-shrink: 0;
 }
 
@@ -351,10 +342,12 @@ body:not(.is-electron) .window-header {
 }
 
 /* ==========================================================================
-   HORIZONTAL CAROUSEL (PAGE SNAPPING)
+   HORIZONTAL CAROUSEL (FLUID FLEX & PAGE SNAPPING)
    ========================================================================== */
 .carousel-viewport {
-  flex: 1;
+  flex: 1 1 0%;
+  min-height: 0;
+  min-width: 0;
   display: flex;
   overflow-x: auto;
   overflow-y: hidden;
@@ -363,7 +356,6 @@ body:not(.is-electron) .window-header {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   will-change: scroll-position;
-  contain: layout style;
 }
 .carousel-viewport::-webkit-scrollbar {
   display: none;
@@ -373,22 +365,32 @@ body:not(.is-electron) .window-header {
   flex: 0 0 100%;
   width: 100%;
   height: 100%;
+  min-height: 0;
+  min-width: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  padding: 8px 14px;
+  padding: clamp(6px, 1.1vh, 10px) clamp(12px, 2.6vw, 15px);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  overflow: hidden !important; /* STRICT ZERO SCROLLING ON ALL TABS */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  contain: layout style;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  gap: clamp(6px, 1vh, 8px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-subtle) transparent;
   box-sizing: border-box;
 }
 .carousel-page::-webkit-scrollbar {
-  display: none;
+  width: 4px;
+}
+.carousel-page::-webkit-scrollbar-track {
+  background: transparent;
+}
+.carousel-page::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 999px;
+}
+.carousel-page::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-blue);
 }
 
 /* ==========================================================================
@@ -404,7 +406,8 @@ body:not(.is-electron) .window-header {
   gap: 8px;
   position: relative;
   overflow: hidden; /* Guaranteed boundary clipping */
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 140px;
 }
 
 .soundstage-top {
@@ -435,7 +438,8 @@ body:not(.is-electron) .window-header {
 
 .radar-arena {
   width: 100%;
-  height: 110px;
+  flex: 1 1 110px;
+  min-height: 102px;
   position: relative;
   display: flex;
   align-items: center;
@@ -443,7 +447,6 @@ body:not(.is-electron) .window-header {
   overflow: hidden; /* Strictly frames concentric acoustic arcs and wave ripples */
   border-radius: var(--radius-sm);
   background: radial-gradient(ellipse at 50% 90%, rgba(114, 24, 37, 0.04) 0%, transparent 70%);
-  flex-shrink: 0;
 }
 
 [data-theme="dark"] .radar-arena {
@@ -607,10 +610,10 @@ body:not(.is-electron) .window-header {
   background: var(--bg-surface-secondary);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 9px 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   box-shadow: var(--shadow-card);
   flex-shrink: 0;
 }
@@ -619,11 +622,23 @@ body:not(.is-electron) .window-header {
   background: var(--bg-surface);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
-  padding: 7px 10px;
+  padding: 6px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 2px;
+  gap: 10px;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.setting-card-interactive {
+  cursor: pointer;
+  transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
+}
+
+.setting-card-interactive:hover {
+  background: var(--bg-surface-secondary);
+  border-color: var(--accent-blue);
 }
 
 /* ==========================================================================
@@ -637,8 +652,10 @@ body:not(.is-electron) .window-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-height: 196px;
 }
 
 .mouse-arena-top {
@@ -649,10 +666,12 @@ body:not(.is-electron) .window-header {
 }
 
 .mouse-silhouette-wrap {
-  padding: 2px 0 4px;
+  padding: 4px 0;
   display: flex;
+  align-items: center;
   justify-content: center;
   width: 100%;
+  flex: 1 1 auto;
 }
 
 .mouse-silhouette {
@@ -745,27 +764,27 @@ body:not(.is-electron) .window-header {
 }
 
 .mouse-pills-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   width: 100%;
-  justify-content: center;
   margin-top: 2px;
 }
 
 .mouse-pill-btn {
-  flex: 1;
-  background: var(--bg-surface);
+  background: var(--bg-surface-secondary);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
-  padding: 5px 4px;
+  padding: 7px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 2px;
   cursor: pointer;
-  transition: all var(--transition-smooth);
+  font-family: inherit;
   color: var(--text-secondary);
   outline: none;
+  transition: all 0.12s ease;
 }
 
 .mouse-pill-btn:hover {
@@ -777,16 +796,17 @@ body:not(.is-electron) .window-header {
   background: var(--accent-soft);
   border-color: var(--accent-blue);
   color: var(--accent-blue);
+  transform: scale(0.97);
 }
 
 .mouse-pill-btn .m-title {
-  font-size: 0.68rem;
-  font-weight: 700;
+  font-size: 0.74rem;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .mouse-pill-btn .m-sub {
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   color: var(--text-tertiary);
 }
 
@@ -906,114 +926,33 @@ body:not(.is-electron) .window-header {
   margin-top: 2px;
 }
 
-.soundpack-picker {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-}
-
-.pack-pill {
-  background: var(--bg-surface-secondary);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 8px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-}
-
-.pack-pill:hover {
-  background: var(--bg-control);
-}
-
-.pack-pill.active {
-  background: var(--bg-surface);
-  border-color: var(--accent-blue);
-  box-shadow: var(--shadow-segmented);
-}
-
-.pack-pill.active .pack-name {
-  color: var(--accent-blue);
-}
-
-.pack-name {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.pack-sub {
-  font-size: 0.65rem;
-  color: var(--text-tertiary);
-}
-
-/* Mouse Click Zone */
-.mouse-pills-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.mouse-pill-btn {
-  background: var(--bg-surface-secondary);
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 8px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.1s ease;
-}
-
-.mouse-pill-btn:hover {
-  background: var(--bg-control);
-}
-
-.mouse-pill-btn:active, .mouse-pill-btn.pressed {
-  background: var(--accent-soft);
-  border-color: var(--accent-blue);
-  transform: scale(0.97);
-}
-
-.mouse-pill-btn .m-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.mouse-pill-btn .m-sub {
-  font-size: 0.62rem;
-  color: var(--text-tertiary);
-}
-
 /* Sliders */
 .sliders-card {
   background: var(--bg-surface-secondary);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  border: 1px solid var(--border-divider);
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .slider-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .slider-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  line-height: 1.25;
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--text-secondary);
+  padding: 0 1px;
 }
 
 .slider-meta span:last-child {
@@ -1025,8 +964,10 @@ body:not(.is-electron) .window-header {
 .apple-slider {
   -webkit-appearance: none;
   appearance: none;
+  display: block;
   width: 100%;
   height: 4px;
+  margin: 4px 0 3px;
   background: rgba(128, 128, 128, 0.25);
   border-radius: 999px;
   outline: none;
@@ -1035,18 +976,40 @@ body:not(.is-electron) .window-header {
 
 .apple-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  appearance: none;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  border: 1.5px solid var(--accent-blue);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
   cursor: pointer;
-  transition: transform 0.1s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#rngMouseVolume::-webkit-slider-thumb {
+  width: 10px;
+  height: 10px;
+}
+
+.apple-slider::-moz-range-thumb {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid var(--accent-blue);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+}
+
+#rngMouseVolume::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
 }
 
 .apple-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 /* Section Header with Layout Picker */
@@ -1105,29 +1068,31 @@ body:not(.is-electron) .window-header {
 }
 
 /* ==========================================================================
-   PAGE 2: COMPACT KEYBOARD MATRIX
+   PAGE 2: COMPACT KEYBOARD MATRIX (FLUID 5-ROW & 6-ROW ADAPTATION)
    ========================================================================== */
 .kb-compact-case {
   background: var(--bg-surface-secondary);
   border-radius: var(--radius-md);
-  padding: 8px;
+  border: 1px solid var(--border-divider);
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+  flex-shrink: 0;
   contain: layout paint;
   transform: translateZ(0);
 }
 
 .kb-row {
   display: flex;
-  gap: 4px;
+  gap: 3.5px;
   justify-content: space-between;
 }
 
 .c-key {
   position: relative;
   flex: 1;
-  height: 34px;
+  height: clamp(27px, 4.6vh, 31px);
   background: var(--key-bg);
   border: 1px solid var(--key-border);
   border-radius: 5px;
@@ -1135,11 +1100,20 @@ body:not(.is-electron) .window-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-primary);
   cursor: pointer;
   transition: transform 0.05s ease, background 0.1s ease, border-color 0.1s ease;
+}
+
+.kb-compact-case[data-rows="6"] {
+  gap: 3px;
+}
+
+.kb-compact-case[data-rows="6"] .c-key {
+  height: clamp(23px, 3.8vh, 26px);
+  font-size: 0.66rem;
 }
 
 .c-key:hover {
@@ -1169,8 +1143,16 @@ body:not(.is-electron) .window-header {
 .c-key.w-space { flex: 6.0; font-size: 0.65rem; }
 
 /* Enlarged Canvas Styles when Keyboard Tab is Active */
+.keyboard-expanded .carousel-page {
+  padding: 6px 14px;
+  gap: 6px;
+}
+.keyboard-expanded .kb-compact-case {
+  padding: 6px 8px;
+  gap: 4px;
+}
 .keyboard-expanded .c-key {
-  height: 36px;
+  height: 33px;
   font-size: 0.74rem;
   border-radius: 6px;
 }
@@ -1189,21 +1171,34 @@ body:not(.is-electron) .window-header {
 .keyboard-expanded .c-key.w-space { font-size: 0.68rem; }
 
 .keyboard-expanded .typing-game-card {
-  padding: 4px 0;
+  padding: 2px 0;
   background: transparent;
   border: none;
   box-shadow: none;
   flex-shrink: 0;
-  gap: 6px;
+  gap: 4px;
+  margin-bottom: 0;
 }
 .keyboard-expanded .typing-stream-box {
-  min-height: 54px;
-  padding: 4px 2px;
+  min-height: 46px;
+  padding: 2px 2px;
   flex-shrink: 0;
 }
 .keyboard-expanded .stream-text {
-  font-size: 1.02rem;
-  line-height: 1.55;
+  font-size: 0.98rem;
+  line-height: 1.48;
+}
+.keyboard-expanded .audio-section-card {
+  padding: 8px 12px;
+  gap: 6px;
+}
+.keyboard-expanded .active-switch-card {
+  padding: 9px 12px;
+  gap: 7px;
+}
+.keyboard-expanded .setting-card-mini {
+  padding: 6px 10px;
+  margin-top: 0;
 }
 
 /* Frameless Interactive Typing Test Game (No Frame Background) */
@@ -1212,14 +1207,13 @@ body:not(.is-electron) .window-header {
   border: none;
   box-shadow: none;
   border-radius: 0;
-  padding: 6px 2px;
+  padding: 2px 2px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
   position: relative;
   flex-shrink: 0;
-  margin-top: 0;
-  margin-bottom: 2px;
+  margin: 0;
 }
 
 .game-header {
@@ -1409,7 +1403,7 @@ body:not(.is-electron) .window-header {
 }
 
 .countdown-pop {
-  animation: countdownPop 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: countdownPop 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes countdownPop {
@@ -1452,11 +1446,15 @@ body:not(.is-electron) .window-header {
 }
 
 .hidden-game-input {
-  position: absolute;
+  width: 1px;
+  height: 1px;
   opacity: 0;
+  border: 0;
+  padding: 0;
+  position: absolute;
   pointer-events: none;
-  width: 0;
-  height: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
 }
 
 /* Completion Card Overlay */
@@ -1548,66 +1546,79 @@ body:not(.is-electron) .window-header {
 }
 
 /* ==========================================================================
-   PAGE 3: SOUNDPACK & AUDIO CALIBRATION
+   PAGE 3: SOUNDPACK & AUDIO CALIBRATION (RESPONSIVE & FLUID)
    ========================================================================== */
 .settings-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: clamp(5px, 0.9vh, 7px);
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: 4px;
 }
 
 .settings-section-divider {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
-  margin-bottom: 2px;
-  font-size: 0.72rem;
+  margin-top: 3px;
+  margin-bottom: 0;
+  font-size: 0.69rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-tertiary);
   padding: 0 2px;
+  flex-shrink: 0;
 }
 
 .settings-section-divider svg {
   width: 13px;
   height: 13px;
   fill: var(--accent-blue);
+  flex-shrink: 0;
 }
 
 .setting-card {
   background: var(--bg-surface-secondary);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
+  border: 1px solid var(--border-divider);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .setting-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .setting-title {
-  font-size: 0.8rem;
+  font-size: 0.77rem;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.25;
 }
 
 .setting-desc {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   color: var(--text-tertiary);
+  line-height: 1.25;
 }
 
 /* Apple Switch Toggle */
 .apple-toggle {
   position: relative;
-  width: 40px;
-  height: 24px;
+  width: 38px;
+  height: 22px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .apple-toggle input {
@@ -1628,8 +1639,8 @@ body:not(.is-electron) .window-header {
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 18px;
-  width: 18px;
+  height: 16px;
+  width: 16px;
   left: 3px;
   bottom: 3px;
   background-color: white;
@@ -1652,6 +1663,7 @@ body:not(.is-electron) .window-header {
   background: var(--bg-control);
   padding: 2px;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .mode-opt {
@@ -1676,29 +1688,36 @@ body:not(.is-electron) .window-header {
 /* Info Box */
 .soundpack-info-card {
   background: var(--bg-surface-secondary);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
+  border: 1px solid var(--border-divider);
+  border-radius: var(--radius-sm);
+  padding: 7px 11px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .pack-status-line {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--text-secondary);
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 .pack-status-line strong {
   color: var(--accent-blue);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ==========================================================================
    BOTTOM PAGINATION DOTS
    ========================================================================== */
 .pagination-footer {
-  height: 28px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1728,18 +1747,14 @@ body:not(.is-electron) .window-header {
 }
 
 /* Responsive Scaling Fallback */
-@media screen and (min-width: 520px) {
+@media screen and (min-width: 500px) {
   .typing-stream-box {
-    min-height: 72px;
-    padding: 8px 6px;
+    min-height: 52px;
+    padding: 4px 4px;
   }
   .stream-text {
-    font-size: 1.12rem;
-    line-height: 1.65;
-  }
-  .c-key {
-    height: 38px;
-    font-size: 0.78rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 }
 
@@ -1841,10 +1856,10 @@ body:not(.is-electron) .window-header {
 }
 
 .about-app-title {
-  font-family: 'Quicksand', 'Nunito', 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-family: 'Cinzel', 'Quicksand', 'Plus Jakarta Sans', -apple-system, sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
@@ -1926,10 +1941,10 @@ body:not(.is-electron) .window-header {
   background: var(--bg-surface-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: 9px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
@@ -2146,11 +2161,11 @@ body:not(.is-electron) .window-header {
 }
 
 .picker-title {
-  font-family: 'Quicksand', 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-family: 'Cinzel', 'Quicksand', 'Plus Jakarta Sans', -apple-system, sans-serif;
   font-size: 1.18rem;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   margin-bottom: 2px;
 }
 
@@ -2521,104 +2536,4 @@ body:not(.is-electron) .window-header {
   background: var(--accent-blue);
   color: #ffffff;
 }
-
-/* Footer note */
-.picker-footer {
-  display: flex;
-  justify-content: center;
-  font-size: 0.68rem;
-  color: var(--text-tertiary);
-  padding-top: 2px;
-}
-
-/* ==========================================================================
-   LUXURY RESTART CONFIRMATION PROMPT MODAL
-   ========================================================================== */
-.restart-prompt-card {
-  position: relative;
-  width: 88%;
-  max-width: 360px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 20px;
-  padding: 24px 20px 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-  transform: scale(0.92);
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.modal-overlay.open .restart-prompt-card {
-  transform: scale(1);
-}
-
-.restart-prompt-icon {
-  font-size: 2rem;
-  line-height: 1;
-  filter: drop-shadow(0 2px 8px rgba(114, 24, 37, 0.25));
-}
-
-.restart-prompt-title {
-  font-family: 'Quicksand', 'Plus Jakarta Sans', -apple-system, sans-serif;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-
-.restart-prompt-desc {
-  font-size: 0.76rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  margin: 0;
-}
-
-.restart-prompt-actions {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  margin-top: 8px;
-}
-
-.btn-prompt-secondary {
-  flex: 1;
-  background: var(--bg-surface-secondary);
-  border: 1px solid var(--border-divider);
-  border-radius: 999px;
-  padding: 8px 0;
-  font-family: inherit;
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-prompt-secondary:hover {
-  background: var(--bg-control);
-  color: var(--text-primary);
-}
-
-.btn-prompt-primary {
-  flex: 1.2;
-  background: var(--accent-blue);
-  border: 1px solid var(--accent-blue);
-  border-radius: 999px;
-  padding: 8px 0;
-  font-family: inherit;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #ffffff;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(114, 24, 37, 0.25);
-  transition: all 0.15s ease;
-}
-.btn-prompt-primary:hover {
-  background: var(--accent-blue-hover);
-  transform: translateY(-1px);
-}
-
 

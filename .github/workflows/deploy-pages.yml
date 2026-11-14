@@ -27,10 +27,16 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Stage Public Web Assets Only
+        run: |
+          mkdir -p _site
+          cp index.html landing.css landing.js app.html styles.css app.js audio-engine.js .nojekyll _site/
+          cp -r assets _site/assets
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

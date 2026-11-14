@@ -75,3 +75,21 @@ scratch/
 tmp/
 temp/
 .system_generated/
+
+# Rust / Tauri Build Artifacts
+src-tauri/target/
+src-tauri/gen/
+ui-dist/
+*.dll
+
+# Private Agent Skills, Rules & Instructions (Local-Only — Never Commit)
+.agents/
+.agent/
+_agents/
+_agent/
+AGENTS.md
+GEMINI.md
+CLAUDE.md
+.cursor/
+.cursorrules
+.windsurfrules

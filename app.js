@@ -12,16 +12,40 @@ document.addEventListener('DOMContentLoaded', () => {
   // Audio Engine instance
   const audio = window.TaptapAudio;
 
-  // Detect Electron environment
+  // Detect Electron or Tauri native desktop environment
   const isElectron = !!(window.process && window.process.versions && window.process.versions.electron) ||
     navigator.userAgent.toLowerCase().includes('electron');
-  if (isElectron) {
+  const isTauri = !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
+  if (isElectron || isTauri) {
     document.body.classList.add('is-electron');
+  }
+  if (isTauri) {
+    document.body.classList.add('is-tauri');
+  }
+
+  function tauriInvoke(cmd, args = {}) {
+    if (!isTauri) return Promise.resolve(null);
+    try {
+      if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === 'function') {
+        return window.__TAURI__.core.invoke(cmd, args);
+      }
+      if (window.__TAURI_INTERNALS__ && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
+        return window.__TAURI_INTERNALS__.invoke(cmd, args);
+      }
+    } catch (e) { }
+    return Promise.resolve(null);
+  }
+
+  function tauriListen(eventName, handler) {
+    if (!isTauri) return;
+    if (window.__TAURI__ && window.__TAURI__.event && typeof window.__TAURI__.event.listen === 'function') {
+      window.__TAURI__.event.listen(eventName, handler).catch(() => { });
+    }
   }
 
   // Ensure AudioContext is awakened immediately on first user gesture in web browsers
   const wakeAudioOnFirstGesture = () => {
-    if (audio) {
+    if (audio && !isTauri) {
       audio.initContext();
       if (audio.ctx && audio.ctx.state === 'suspended') {
         audio.ctx.resume();
@@ -39,6 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { }
   }
 
+  // Frameless window dragging for Tauri
+  const winHeader = document.querySelector('.window-header');
+  if (winHeader && isTauri) {
+    winHeader.addEventListener('mousedown', (e) => {
+      if (e.button === 0 && !e.target.closest('.header-brand, .header-controls, button, a, input, select')) {
+        tauriInvoke('start_drag_window');
+      }
+    });
+  }
+
   // Windows Window Controls (Minimize & Close)
   const winMinimize = document.getElementById('winMinimize');
   const winClose = document.getElementById('winClose');
@@ -46,11 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
     winMinimize.addEventListener('click', () => {
       // Minimize directly to system tray for true stealth mode and lowest hardware consumption
       if (ipc) ipc.send('window-minimize');
+      else if (isTauri) tauriInvoke('close_to_tray');
     });
   }
   if (winClose) {
     winClose.addEventListener('click', () => {
       if (ipc) ipc.send('window-close');
+      else if (isTauri) tauriInvoke('close_to_tray');
     });
   }
 
@@ -65,6 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  tauriListen('window-visibility', (event) => {
+    const visible = !!event.payload;
+    isWindowVisible = visible;
+    if (!visible && isRadarAnimating) {
+      isRadarAnimating = false;
+      ripples.length = 0;
+    }
+  });
   document.addEventListener('visibilitychange', () => {
     isWindowVisible = !document.hidden;
     if (document.hidden && isRadarAnimating) {
@@ -74,11 +118,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function updateTrayStatus() {
+    const swList = window.TaptapSwitches || [];
+    const sw = swList.find(s => s.id === audio.activeKeyboardPack);
+    const pack = sw ? sw.name : (audio.activeKeyboardPack || 'Lofree Flow 2 (Pulse)');
     if (ipc) {
-      const swList = window.TaptapSwitches || [];
-      const sw = swList.find(s => s.id === audio.activeKeyboardPack);
-      const pack = sw ? sw.name : (audio.activeKeyboardPack || 'Lofree Flow 2 (Pulse)');
       ipc.send('update-tray-status', { soundpack: pack, isMuted: audio.isMuted });
+    } else if (isTauri) {
+      tauriInvoke('update_tray_status', { soundpack: pack, isMuted: !!audio.isMuted });
     }
   }
 
@@ -88,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pageDots = document.querySelectorAll('.page-dot');
   const btnTheme = document.getElementById('btnTheme');
   const btnMute = document.getElementById('btnMute');
+  const muteIcon = document.getElementById('muteIcon');
   const stageReadout = document.getElementById('stageReadout');
   const radarCanvas = document.getElementById('radarCanvas');
   const radarCtx = radarCanvas.getContext('2d');
@@ -131,12 +178,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const chkUpstroke = document.getElementById('chkUpstroke');
   const chkCursorTracking = document.getElementById('chkCursorTracking');
   const chkElevation = document.getElementById('chkElevation');
+  const chkRightClickMenu = document.getElementById('chkRightClickMenu');
   const modeOpts = document.querySelectorAll('.mode-opt');
 
-  // Mouse Pills
+  // Right-click context menu ("Inspect Element") is disabled by default unless enabled in Settings
+  let rightClickMenuEnabled = false;
+  window.addEventListener('contextmenu', (e) => {
+    if (!rightClickMenuEnabled) {
+      e.preventDefault();
+    }
+  }, true);
+
+  // Mouse Pills & Readout
+  const mouseClickReadout = document.getElementById('mouseClickReadout');
   const mBtnLeft = document.getElementById('mBtnLeft');
+  const mBtnLeftAlt = document.getElementById('mBtnLeftAlt');
   const mBtnMid = document.getElementById('mBtnMid');
+  const mBtnMidAlt = document.getElementById('mBtnMidAlt');
   const mBtnRight = document.getElementById('mBtnRight');
+  const mBtnRightAlt = document.getElementById('mBtnRightAlt');
+  const hiddenGameInput = document.getElementById('hiddenGameInput');
 
   // About Modal Elements
   const aboutModal = document.getElementById('aboutModal');
@@ -226,6 +287,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       localStorage.setItem('taptap-favorite-switches', JSON.stringify(favoriteSwitches));
     } catch (e) { }
+    if (isTauri) {
+      tauriInvoke('save_ui_prefs', { args: { favoriteSwitches } });
+    }
     renderFavoritePills();
   }
 
@@ -245,6 +309,54 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { }
   }
 
+
+  function updateMasterMuteUI(isMuted) {
+    if (btnMute) btnMute.style.color = isMuted ? 'var(--text-tertiary)' : 'var(--text-secondary)';
+    if (muteIcon) {
+      muteIcon.innerHTML = isMuted
+        ? '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>'
+        : '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+    }
+  }
+
+  function focusTypingSurface() {
+    try {
+      window.focus();
+    } catch (e) { }
+    if (hiddenGameInput) {
+      try {
+        hiddenGameInput.focus({ preventScroll: true });
+      } catch (e) {
+        hiddenGameInput.focus();
+      }
+    }
+  }
+
+  if (hiddenGameInput) {
+    hiddenGameInput.addEventListener('input', () => {
+      hiddenGameInput.value = '';
+    });
+  }
+
+  // Prevent sticky focus on controls so Space/Enter/Arrow keys never hijack typing
+  document.addEventListener('change', (e) => {
+    const target = e.target;
+    if (target instanceof HTMLElement && target.matches('select, input[type="checkbox"], input[type="range"]')) {
+      target.blur();
+    }
+  });
+  document.addEventListener('pointerup', (e) => {
+    const target = e.target;
+    if (target instanceof HTMLElement && target.matches('input[type="range"]')) {
+      target.blur();
+    }
+  });
+  document.addEventListener('mouseup', (e) => {
+    const btn = e.target instanceof Element ? e.target.closest('button') : null;
+    if (btn && !btn.closest('#switchPickerModal')) {
+      btn.blur();
+    }
+  });
 
   // --- PERSISTENCE: SAVE & RESTORE AUDIO SETTINGS ---
   let saveSettingsTimer = null;
@@ -270,11 +382,15 @@ document.addEventListener('DOMContentLoaded', () => {
       dynamicCursorTracking: chkCursorTracking ? chkCursorTracking.checked : true,
       verticalElevation: chkElevation ? chkElevation.checked : true,
       spatialMode: audio.mode || 'hrtf',
-      keyboardLayout: currentLayoutId || 'ansi-68'
+      keyboardLayout: currentLayoutId || 'ansi-68',
+      rightClickMenu: rightClickMenuEnabled
     };
     try {
       localStorage.setItem('taptap-audio-settings', JSON.stringify(settings));
     } catch (e) { }
+    if (isTauri) {
+      audio.syncNativeConfig();
+    }
   }
 
   function loadSettings() {
@@ -347,16 +463,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (typeof settings.masterMuted === 'boolean' && audio) {
       audio.setMuted(settings.masterMuted);
-      if (btnMute) btnMute.style.color = settings.masterMuted ? 'var(--text-tertiary)' : 'var(--text-secondary)';
-      const icon = document.getElementById('muteIcon');
-      if (icon) {
-        if (settings.masterMuted) {
-          icon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
-        } else {
-          icon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
-        }
-      }
+      updateMasterMuteUI(settings.masterMuted);
     }
+
+    // 9b. App Right-Click Context Menu
+    rightClickMenuEnabled = (typeof settings.rightClickMenu === 'boolean') ? settings.rightClickMenu : false;
+    if (chkRightClickMenu) chkRightClickMenu.checked = rightClickMenuEnabled;
 
     // 10. Load favorites & soundpacks
     loadFavorites();
@@ -387,59 +499,38 @@ document.addEventListener('DOMContentLoaded', () => {
   // Apply settings immediately on startup
   loadSettings();
 
-  // --- 1. HORIZONTAL SCROLL-SNAP SYNCHRONIZATION ---
+  // --- 1. HORIZONTAL SCROLL-SNAP SYNCHRONIZATION (Fixed Companion Window) ---
   let currentPage = 0;
-  let isProgrammaticScroll = false;
+  let programmaticLockUntil = 0;
   let programmaticScrollTimer = null;
 
-  const windowFrame = document.querySelector('.window-frame');
-
-  const PAGE_CONFIG = {
-    0: { width: 440, height: 605, expanded: false },
-    1: { width: 640, height: 730, expanded: true },
-    2: { width: 440, height: 560, expanded: false },
-    3: { width: 440, height: 650, expanded: false },
-    default: { width: 440, height: 565, expanded: false }
-  };
-
-  // Track active target dimensions to accurately detect when ANY tab dimension changes
-  let currentTargetWidth = PAGE_CONFIG[0].width;
-  let currentTargetHeight = PAGE_CONFIG[0].height;
-
-  function goToPage(index, fromScroll = false) {
-    if (index < 0 || index >= navTabs.length) return;
-    currentPage = index;
-
-    const config = PAGE_CONFIG[index] || PAGE_CONFIG.default;
-    const needsResize = (currentTargetWidth !== config.width || currentTargetHeight !== config.height);
-
-    currentTargetWidth = config.width;
-    currentTargetHeight = config.height;
-
-    // Lock programmatic scroll flag for the duration of the transition + window resize
-    isProgrammaticScroll = true;
+  function lockProgrammaticScroll(ms) {
+    const deadline = performance.now() + ms;
+    programmaticLockUntil = Math.max(programmaticLockUntil, deadline);
     clearTimeout(programmaticScrollTimer);
+    const delay = Math.max(0, Math.ceil(programmaticLockUntil - performance.now()));
     programmaticScrollTimer = setTimeout(() => {
-      isProgrammaticScroll = false;
-      // Re-align scroll position once window animation completes
+      if (performance.now() < programmaticLockUntil) return;
       if (carousel && carousel.clientWidth) {
         carousel.scrollTo({
           left: currentPage * carousel.clientWidth,
           behavior: 'instant'
         });
       }
-    }, needsResize ? 350 : 150);
+    }, delay);
+  }
 
-    if (windowFrame) {
-      windowFrame.classList.toggle('keyboard-expanded', config.expanded);
-    }
+  function isProgrammaticScrollLocked() {
+    return performance.now() < programmaticLockUntil;
+  }
 
-    // Send IPC resize whenever width OR height differs between tabs
-    if (ipc && needsResize) {
-      ipc.send('resize-window', { targetWidth: config.width, targetHeight: config.height, duration: 220 });
-    }
+  function goToPage(index, fromScroll = false) {
+    if (index < 0 || index >= navTabs.length) return;
+    currentPage = index;
 
-    // Reset vertical scroll of target page so minigame is immediately visible at the top
+    lockProgrammaticScroll(180);
+
+    // Reset vertical scroll of target page so top controls are immediately visible
     const targetPage = document.getElementById(`page${index}`);
     if (targetPage) {
       targetPage.scrollTop = 0;
@@ -450,8 +541,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!fromScroll && carousel && carousel.clientWidth) {
       carousel.scrollTo({
         left: index * carousel.clientWidth,
-        behavior: needsResize ? 'instant' : 'smooth'
+        behavior: 'smooth'
       });
+    }
+
+    if (index === 0) {
+      resizeRadar(false);
+    } else if (index === 1 && !switchPickerModal?.classList.contains('open') && !aboutModal?.classList.contains('open')) {
+      focusTypingSurface();
     }
   }
 
@@ -461,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncPageFromScroll() {
-    if (isProgrammaticScroll || !carousel?.clientWidth) return;
+    if (isProgrammaticScrollLocked() || !carousel?.clientWidth) return;
     const raw = carousel.scrollLeft / carousel.clientWidth;
     const nearest = Math.round(raw);
     // Only trigger page change when scroll position settles within threshold
@@ -474,12 +571,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.ResizeObserver && carousel) {
     const ro = new ResizeObserver(() => {
       if (carousel && carousel.clientWidth) {
-        isProgrammaticScroll = true;
+        lockProgrammaticScroll(150);
         carousel.scrollLeft = currentPage * carousel.clientWidth;
-        clearTimeout(programmaticScrollTimer);
-        programmaticScrollTimer = setTimeout(() => {
-          isProgrammaticScroll = false;
-        }, 150);
       }
     });
     ro.observe(carousel);
@@ -488,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Throttled scroll listener on carousel with requestAnimationFrame
   let scrollRaf = null;
   carousel.addEventListener('scroll', () => {
-    if (isProgrammaticScroll) return;
+    if (isProgrammaticScrollLocked()) return;
     if (!scrollRaf) {
       scrollRaf = requestAnimationFrame(() => {
         scrollRaf = null;
@@ -499,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Native scrollend support for precise final snap alignment
   carousel.addEventListener('scrollend', () => {
-    if (isProgrammaticScroll) return;
+    if (isProgrammaticScrollLocked()) return;
     syncPageFromScroll();
     if (carousel?.clientWidth) {
       carousel.scrollTo({
@@ -520,6 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let cachedThemeDark = savedTheme === 'dark';
   updateThemeIcon(savedTheme);
   if (ipc) ipc.send('theme-changed', savedTheme);
+  if (isTauri) tauriInvoke('save_ui_prefs', { args: { theme: savedTheme } });
 
   btnTheme.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
@@ -529,6 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('taptap-theme', next);
     updateThemeIcon(next);
     if (ipc) ipc.send('theme-changed', next);
+    if (isTauri) tauriInvoke('save_ui_prefs', { args: { theme: next } });
   });
 
   function updateThemeIcon(theme) {
@@ -546,13 +641,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnMute.addEventListener('click', () => {
     const isMuted = !audio.isMuted;
     audio.setMuted(isMuted);
-    btnMute.style.color = isMuted ? 'var(--text-tertiary)' : 'var(--text-secondary)';
-    const icon = document.getElementById('muteIcon');
-    if (isMuted) {
-      icon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
-    } else {
-      icon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
-    }
+    updateMasterMuteUI(isMuted);
     saveSettings();
     updateTrayStatus();
   });
@@ -593,13 +682,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentPage === 0) {
       resizeRadar(false);
     }
-    if (carousel) {
+    if (carousel && carousel.clientWidth) {
+      lockProgrammaticScroll(150);
       carousel.scrollTo({
         left: currentPage * carousel.clientWidth,
         behavior: 'instant'
       });
     }
   });
+  if (window.ResizeObserver && radarCanvas?.parentElement) {
+    const radarRo = new ResizeObserver(() => {
+      if (currentPage === 0) {
+        resizeRadar(false);
+      }
+    });
+    radarRo.observe(radarCanvas.parentElement);
+  }
   resizeRadar(true);
 
   let isRadarAnimating = false;
@@ -715,6 +813,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     currentLayoutId = layout.id;
     if (audio) audio.setLayout(layout.id);
+    keyboardContainer.dataset.rows = String(layout.rows.length);
+    keyboardContainer.dataset.layout = layout.id;
 
     keyboardContainer.innerHTML = '';
     keyMapElements.clear();
@@ -743,7 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
           onActionUp(k.code);
         });
 
-        keyEl.addEventListener('contextmenu', (e) => e.preventDefault());
+        keyEl.addEventListener('contextmenu', (e) => {
+          if (!rightClickMenuEnabled) e.preventDefault();
+        });
 
         rowEl.appendChild(keyEl);
         keyMapElements.set(k.code, keyEl);
@@ -791,42 +893,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 6. ACTION HANDLERS (DOWNSTROKE & UPSTROKE) ---
   const activeKeys = new Set();
+  const mouseButtonPairs = {
+    MouseLeft: [mBtnLeft, mBtnLeftAlt],
+    MouseMiddle: [mBtnMid, mBtnMidAlt],
+    MouseRight: [mBtnRight, mBtnRightAlt]
+  };
 
-  function onActionDown(code, label, customPan = null) {
-    if (activeKeys.has(code)) return; // Avoid key-repeat retrigger
-    activeKeys.add(code);
+  function setMouseButtonsPressed(code, pressed) {
+    const pair = mouseButtonPairs[code];
+    if (!pair) return;
+    pair.forEach(el => el?.classList.toggle('pressed', pressed));
+  }
 
-    const res = audio.trigger(code, false, customPan); // Downstroke with optional dynamic pan
+  function onActionDown(code, label, customPan = null, playAudio = true, dedupe = false) {
+    const isMouse = typeof code === 'string' && code.startsWith('Mouse');
+    if (!isMouse) {
+      if (activeKeys.has(code)) return; // Avoid key-repeat retrigger
+      activeKeys.add(code);
+    }
+
+    const res = audio.trigger(code, false, customPan, playAudio, dedupe); // Downstroke with optional dynamic pan
     if (!res) return;
 
     // STEALTH MODE: If window is minimized to tray or hidden, bypass all DOM and canvas operations
     if (!isWindowVisible) return;
 
     // Only update visual keycaps when Keyboard tab is visible to avoid style recalcs
-    if (currentPage === 1) {
+    if (!isMouse && currentPage === 1) {
       const keyEl = keyMapElements.get(code);
       if (keyEl) keyEl.classList.add('pressed');
     }
 
     // Update mouse readout and feedback if Mouse button is pressed
-    if (code.startsWith('Mouse') && currentPage === 2) {
-      const mouseClickReadout = document.getElementById('mouseClickReadout');
+    if (isMouse && currentPage === 2) {
       if (mouseClickReadout) {
         let panText = 'Center';
         if (res.pan < -0.1) panText = `L ${Math.round(Math.abs(res.pan) * 100)}%`;
         else if (res.pan > 0.1) panText = `R ${Math.round(res.pan * 100)}%`;
         mouseClickReadout.textContent = `${label || 'Click'} • ${panText}`;
       }
-      if (code === 'MouseLeft') {
-        document.getElementById('mBtnLeft')?.classList.add('pressed');
-        document.getElementById('mBtnLeftAlt')?.classList.add('pressed');
-      } else if (code === 'MouseMiddle') {
-        document.getElementById('mBtnMid')?.classList.add('pressed');
-        document.getElementById('mBtnMidAlt')?.classList.add('pressed');
-      } else if (code === 'MouseRight') {
-        document.getElementById('mBtnRight')?.classList.add('pressed');
-        document.getElementById('mBtnRightAlt')?.classList.add('pressed');
-      }
+      setMouseButtonsPressed(code, true);
     }
 
     // Only trigger radar if Soundstage tab is visible
@@ -835,79 +941,115 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function onActionUp(code) {
-    if (!activeKeys.has(code)) return;
-    activeKeys.delete(code);
+  function onActionUp(code, playAudio = true, dedupe = false) {
+    const isMouse = typeof code === 'string' && code.startsWith('Mouse');
+    if (!isMouse) {
+      if (!activeKeys.has(code)) return;
+      activeKeys.delete(code);
+    }
 
-    audio.trigger(code, true); // Upstroke audio
+    audio.trigger(code, true, null, playAudio, dedupe); // Upstroke audio
 
     // STEALTH MODE: If window is minimized or hidden, bypass DOM lookups
     if (!isWindowVisible) return;
 
-    if (currentPage === 1) {
+    if (!isMouse && currentPage === 1) {
       const keyEl = keyMapElements.get(code);
       if (keyEl) keyEl.classList.remove('pressed');
     }
 
-    if (code.startsWith('Mouse') && currentPage === 2) {
-      if (code === 'MouseLeft') {
-        document.getElementById('mBtnLeft')?.classList.remove('pressed');
-        document.getElementById('mBtnLeftAlt')?.classList.remove('pressed');
-      } else if (code === 'MouseMiddle') {
-        document.getElementById('mBtnMid')?.classList.remove('pressed');
-        document.getElementById('mBtnMidAlt')?.classList.remove('pressed');
-      } else if (code === 'MouseRight') {
-        document.getElementById('mBtnRight')?.classList.remove('pressed');
-        document.getElementById('mBtnRightAlt')?.classList.remove('pressed');
-      }
+    if (isMouse && currentPage === 2) {
+      setMouseButtonsPressed(code, false);
     }
   }
 
   // Window Focus Keystroke Listeners
   window.addEventListener('keydown', (e) => {
-    const activeEl = document.activeElement;
-    const activeTag = activeEl ? activeEl.tagName.toLowerCase() : '';
+    const isPickerOpen = !!switchPickerModal?.classList.contains('open');
+    const isAboutOpen = !!aboutModal?.classList.contains('open');
 
     if (e.key === 'Escape') {
-      if (switchPickerModal?.classList.contains('open')) {
+      if (isPickerOpen) {
         closeSwitchPickerModal();
         return;
       }
-      if (aboutModal?.classList.contains('open')) {
+      if (isAboutOpen) {
         closeAboutModal();
         return;
       }
-      if (restartModal?.classList.contains('open')) {
-        closeRestartModal();
+      if (currentPage === 1 && (gameActive || isCountingDown)) {
+        stopTypingTest();
         return;
       }
     }
 
-    if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
-      if (activeEl?.id === 'inputSwitchSearch') {
-        // Acoustic downstroke feedback for search typing
-        onActionDown(e.code, e.key.toUpperCase());
-        return;
+    const activeEl = document.activeElement;
+    const activeTag = activeEl ? activeEl.tagName.toLowerCase() : '';
+    const keyLabel = (e.key && e.key.length === 1) ? e.key.toUpperCase() : (e.code ? e.code.replace('Key', '') : '');
+
+    if (isPickerOpen && activeEl?.id === 'inputSwitchSearch') {
+      if (!e.repeat && e.code) {
+        onActionDown(e.code, keyLabel, null, true, isTauri);
       }
       return;
     }
 
-    onActionDown(e.code, e.key.toUpperCase());
+    if (isPickerOpen || isAboutOpen) {
+      if (!e.repeat && e.code) {
+        onActionDown(e.code, keyLabel, null, true, isTauri);
+      }
+      return;
+    }
+
+    if (!e.repeat && e.code) {
+      onActionDown(e.code, keyLabel, null, true, isTauri);
+    }
 
     // Route directly to typing game when active on Keyboard page
-    if (gameActive && currentPage === 1) {
-      if (e.key === ' ' || e.key === 'Backspace') {
-        e.preventDefault();
+    if (currentPage === 1) {
+      if (gameActive || isCountingDown) {
+        if (e.key === ' ' || e.key === 'Backspace' || e.key === 'Tab' || e.key === 'Enter') {
+          e.preventDefault();
+        }
       }
-      processGameKey(e.key);
+      if (gameActive && !isCountingDown) {
+        if (e.key === 'Backspace') {
+          processGameKey('Backspace');
+        } else if (!e.repeat && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          processGameKey(e.key);
+        }
+      } else if (!gameActive && !isCountingDown && e.key === 'Enter' && !e.repeat && activeTag !== 'select') {
+        e.preventDefault();
+        triggerCountdown();
+      }
     }
   });
 
   window.addEventListener('keyup', (e) => {
-    onActionUp(e.code);
+    if (e.code) {
+      onActionUp(e.code, true, isTauri);
+    }
   });
 
-  // Global Background Keyboard & Mouse Listeners via Electron IPC (uIOhook)
+  // In-window mouse click sounds (unified across Tauri, Electron, and Web since native hooks ignore focused clicks)
+  const MOUSE_CLICK_EXCLUDE_SELECTOR = '.c-key, .mouse-btn-zone, .mouse-wheel-zone, .mouse-pill-btn, .btn-preview-switch, .fav-switch-pill, .switch-item-card, #clickToStartOverlay, #btnPlayAgain, #btnRestartGame, #btnMute, #btnMuteKeyboard, #btnMuteMouse';
+  window.addEventListener('mousedown', (e) => {
+    if (e.target instanceof Element && e.target.closest(MOUSE_CLICK_EXCLUDE_SELECTOR)) {
+      return;
+    }
+    const code = e.button === 2 ? 'MouseRight' : (e.button === 1 ? 'MouseMiddle' : 'MouseLeft');
+    const label = e.button === 2 ? 'R-Click' : (e.button === 1 ? 'Wheel' : 'L-Click');
+    onActionDown(code, label, getMousePan(0), true);
+  });
+  window.addEventListener('mouseup', (e) => {
+    if (e.target instanceof Element && e.target.closest(MOUSE_CLICK_EXCLUDE_SELECTOR)) {
+      return;
+    }
+    const code = e.button === 2 ? 'MouseRight' : (e.button === 1 ? 'MouseMiddle' : 'MouseLeft');
+    onActionUp(code, true);
+  });
+
+  // Global Background Keyboard & Mouse Listeners via Electron IPC (uIOhook) or Tauri Native Hooks
   if (ipc) {
     ipc.on('global-keydown', (event, { code }) => {
       onActionDown(code, code.replace('Key', ''));
@@ -933,61 +1075,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  if (isTauri) {
+    tauriListen('taptap://input-event', (event) => {
+      const payload = event.payload || {};
+      const { kind, code, pan } = payload;
+      if (!code) return;
+      if (kind === 'keydown') {
+        onActionDown(code, code.replace('Key', ''), (typeof pan === 'number') ? pan : null, false);
+      } else if (kind === 'keyup') {
+        onActionUp(code, false);
+      } else if (kind === 'mousedown') {
+        onActionDown(code, code.replace('Mouse', ''), (typeof pan === 'number') ? pan : null, false);
+      } else if (kind === 'mouseup') {
+        onActionUp(code, false);
+      }
+    });
+  }
+
   // --- 7. MOUSE CLICK ZONE (SILHOUETTE & PILL BUTTONS) ---
-  ['mBtnLeft', 'mBtnLeftAlt'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      document.getElementById('mBtnLeft')?.classList.add('pressed');
-      document.getElementById('mBtnLeftAlt')?.classList.add('pressed');
-      onActionDown('MouseLeft', 'L-Click', getMousePan(-0.08));
+  function bindMouseZone(elements, code, label, panBias, preventContext = false) {
+    elements.filter(Boolean).forEach(el => {
+      el.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        setMouseButtonsPressed(code, true);
+        onActionDown(code, label, getMousePan(panBias));
+      });
+      const release = () => {
+        setMouseButtonsPressed(code, false);
+        onActionUp(code);
+      };
+      el.addEventListener('mouseup', release);
+      el.addEventListener('mouseleave', release);
+      if (preventContext) {
+        el.addEventListener('contextmenu', (e) => {
+          if (!rightClickMenuEnabled) e.preventDefault();
+        });
+      }
     });
-    const releaseLeft = () => {
-      document.getElementById('mBtnLeft')?.classList.remove('pressed');
-      document.getElementById('mBtnLeftAlt')?.classList.remove('pressed');
-      onActionUp('MouseLeft');
-    };
-    el.addEventListener('mouseup', releaseLeft);
-    el.addEventListener('mouseleave', releaseLeft);
-  });
+  }
 
-  ['mBtnMid', 'mBtnMidAlt'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      document.getElementById('mBtnMid')?.classList.add('pressed');
-      document.getElementById('mBtnMidAlt')?.classList.add('pressed');
-      onActionDown('MouseMiddle', 'Wheel', getMousePan(0));
-    });
-    const releaseMid = () => {
-      document.getElementById('mBtnMid')?.classList.remove('pressed');
-      document.getElementById('mBtnMidAlt')?.classList.remove('pressed');
-      onActionUp('MouseMiddle');
-    };
-    el.addEventListener('mouseup', releaseMid);
-    el.addEventListener('mouseleave', releaseMid);
-  });
-
-  ['mBtnRight', 'mBtnRightAlt'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      document.getElementById('mBtnRight')?.classList.add('pressed');
-      document.getElementById('mBtnRightAlt')?.classList.add('pressed');
-      onActionDown('MouseRight', 'R-Click', getMousePan(0.08));
-    });
-    const releaseRight = () => {
-      document.getElementById('mBtnRight')?.classList.remove('pressed');
-      document.getElementById('mBtnRightAlt')?.classList.remove('pressed');
-      onActionUp('MouseRight');
-    };
-    el.addEventListener('mouseup', releaseRight);
-    el.addEventListener('mouseleave', releaseRight);
-    el.addEventListener('contextmenu', e => e.preventDefault());
-  });
+  bindMouseZone([mBtnLeft, mBtnLeftAlt], 'MouseLeft', 'L-Click', -0.08);
+  bindMouseZone([mBtnMid, mBtnMidAlt], 'MouseMiddle', 'Wheel', 0);
+  bindMouseZone([mBtnRight, mBtnRightAlt], 'MouseRight', 'R-Click', 0.08, true);
 
   // --- 8. KEYBOARD SWITCHES & MOUSE SOUNDPACK CONTROLLERS ---
   async function selectKeyboardSwitch(switchId, playDemo = true) {
@@ -1067,6 +1196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const frag = document.createDocumentFragment();
     filtered.forEach(sw => {
       const isActive = (sw.id === audio.activeKeyboardPack);
       const isFav = favoriteSwitches.includes(sw.id);
@@ -1125,8 +1255,9 @@ document.addEventListener('DOMContentLoaded', () => {
         closeSwitchPickerModal();
       });
 
-      pickerSwitchGrid.appendChild(card);
+      frag.appendChild(card);
     });
+    pickerSwitchGrid.appendChild(frag);
   }
 
   function openSwitchPickerModal() {
@@ -1146,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!switchPickerModal) return;
     switchPickerModal.classList.remove('open');
     switchPickerModal.setAttribute('aria-hidden', 'true');
+    if (currentPage === 1) focusTypingSurface();
   }
 
   if (btnOpenSwitchPicker0) btnOpenSwitchPicker0.addEventListener('click', openSwitchPickerModal);
@@ -1326,71 +1458,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Right-Click Context Menu ("Inspect Element") Toggle
+  if (chkRightClickMenu) {
+    chkRightClickMenu.addEventListener('change', (e) => {
+      rightClickMenuEnabled = !!e.target.checked;
+      saveSettings();
+      if (isTauri) {
+        tauriInvoke('save_ui_prefs', { args: { rightClickMenu: rightClickMenuEnabled } });
+      }
+    });
+  }
+
   // Windows Startup & Silent Stealth Boot Setting
   const chkStartupLaunch = document.getElementById('chkStartupLaunch');
-  if (chkStartupLaunch && ipc) {
-    ipc.invoke('get-startup-status').then(enabled => {
+  if (chkStartupLaunch && (ipc || isTauri)) {
+    const getStartup = ipc ? ipc.invoke('get-startup-status') : tauriInvoke('get_startup_status');
+    getStartup.then(enabled => {
       chkStartupLaunch.checked = !!enabled;
     }).catch(() => { });
 
     chkStartupLaunch.addEventListener('change', (e) => {
-      ipc.invoke('set-startup-status', e.target.checked).then(res => {
+      const setStartup = ipc
+        ? ipc.invoke('set-startup-status', e.target.checked)
+        : tauriInvoke('set_startup_status', { enable: e.target.checked });
+      setStartup.then(res => {
         chkStartupLaunch.checked = !!res;
-      }).catch(() => { });
-    });
-  }
-
-  // GPU Hardware Acceleration Setting & Restart Modal
-  const chkGpuAcceleration = document.getElementById('chkGpuAcceleration');
-  const restartModal = document.getElementById('restartModal');
-  const btnRestartNow = document.getElementById('btnRestartNow');
-  const btnRestartLater = document.getElementById('btnRestartLater');
-  const restartPromptDesc = document.getElementById('restartPromptDesc');
-
-  function openRestartModal(gpuEnabled) {
-    if (restartModal) {
-      if (restartPromptDesc) {
-        restartPromptDesc.textContent = gpuEnabled
-          ? 'GPU hardware acceleration enabled. Restart Taptap now for silky 60/120+ FPS rendering?'
-          : 'GPU hardware acceleration disabled (CPU Mode). Restart Taptap now to apply changes?';
-      }
-      restartModal.classList.add('open');
-      restartModal.setAttribute('aria-hidden', 'false');
-    }
-  }
-
-  function closeRestartModal() {
-    if (restartModal) {
-      restartModal.classList.remove('open');
-      restartModal.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  if (btnRestartNow && ipc) {
-    btnRestartNow.addEventListener('click', () => {
-      ipc.send('restart-app');
-    });
-  }
-
-  if (btnRestartLater) {
-    btnRestartLater.addEventListener('click', closeRestartModal);
-  }
-
-  if (restartModal) {
-    restartModal.addEventListener('click', (e) => {
-      if (e.target === restartModal) closeRestartModal();
-    });
-  }
-
-  if (chkGpuAcceleration && ipc) {
-    ipc.invoke('get-gpu-status').then(enabled => {
-      chkGpuAcceleration.checked = (enabled !== false);
-    }).catch(() => { });
-
-    chkGpuAcceleration.addEventListener('change', (e) => {
-      const isEnabled = e.target.checked;
-      ipc.invoke('set-gpu-status', isEnabled).then(() => {
-        openRestartModal(isEnabled);
       }).catch(() => { });
     });
   }
@@ -1416,12 +1508,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (aboutModal) {
       aboutModal.classList.remove('open');
       aboutModal.setAttribute('aria-hidden', 'true');
+      if (currentPage === 1) focusTypingSurface();
     }
   }
 
   if (btnAbout) btnAbout.addEventListener('click', openAboutModal);
   if (btnBrandAbout) btnBrandAbout.addEventListener('click', openAboutModal);
-  if (btnSettingsAbout) btnSettingsAbout.addEventListener('click', openAboutModal);
+  if (btnSettingsAbout) {
+    btnSettingsAbout.addEventListener('click', openAboutModal);
+    btnSettingsAbout.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openAboutModal();
+      }
+    });
+  }
   if (btnAboutClose) btnAboutClose.addEventListener('click', closeAboutModal);
 
   if (aboutModal) {
@@ -1437,6 +1538,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (ipc) {
         e.preventDefault();
         ipc.send('open-external-url', url);
+      } else if (isTauri) {
+        e.preventDefault();
+        tauriInvoke('open_external_url', { url });
       }
     });
   }
@@ -1459,6 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isCountingDown = false;
   let countdownTimer = null;
   let timerInterval = null;
+  let resultResetTimer = null;
   let charSpans = [];
 
   const statWpm = document.getElementById('statWpm');
@@ -1486,7 +1591,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function clearGameTimers() {
     clearTimeout(countdownTimer);
+    countdownTimer = null;
     clearInterval(timerInterval);
+    timerInterval = null;
+    clearInterval(resultResetTimer);
+    resultResetTimer = null;
   }
 
   function initTypingTest() {
@@ -1542,7 +1651,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Animated 3.. 2.. 1.. GO! Countdown
   function triggerCountdown() {
     if (isCountingDown || gameActive) return;
+    if (gameResultOverlay?.classList.contains('show')) {
+      initTypingTest();
+    }
     isCountingDown = true;
+    focusTypingSurface();
 
     clearGameTimers();
     setGameState('countdown');
@@ -1562,7 +1675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statTime) statTime.textContent = `Starts in ${count}...`;
         audio.trigger('Space', false); // Gentle tactile click on countdown beat
         count--;
-        countdownTimer = setTimeout(nextCount, 650);
+        countdownTimer = setTimeout(nextCount, 500);
       } else {
         countdownNumber.textContent = 'GO!';
         countdownNumber.style.color = '#34c759'; // Apple success green
@@ -1573,7 +1686,7 @@ document.addEventListener('DOMContentLoaded', () => {
           setGameState('playing');
           isCountingDown = false;
           startTypingNow();
-        }, 380);
+        }, 280);
       }
     }
 
@@ -1587,6 +1700,7 @@ document.addEventListener('DOMContentLoaded', () => {
     correctKeystrokes = 0;
     totalKeystrokes = 0;
     if (statTime) statTime.textContent = '0.0s';
+    focusTypingSurface();
 
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
@@ -1602,7 +1716,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   }
 
-  // Click on prompt or typing box starts the countdown
+  // Click on prompt or typing box starts the countdown and focuses typing surface
   if (clickToStartOverlay) {
     clickToStartOverlay.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1612,6 +1726,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (typingStreamBox) {
     typingStreamBox.addEventListener('click', () => {
+      focusTypingSurface();
       if (!gameActive && !isCountingDown) {
         triggerCountdown();
       }
@@ -1658,6 +1773,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function finishTypingTest() {
     gameActive = false;
     clearInterval(timerInterval);
+    timerInterval = null;
 
     const elapsedSecs = ((performance.now() - gameStartTime) / 1000).toFixed(1);
     const elapsedMins = elapsedSecs / 60;
@@ -1672,12 +1788,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let count = 5;
     if (resCountdownHint) resCountdownHint.textContent = `Next test starting in ${count}s...`;
-    countdownTimer = setInterval(() => {
+    clearInterval(resultResetTimer);
+    resultResetTimer = setInterval(() => {
       count--;
       if (count > 0) {
         if (resCountdownHint) resCountdownHint.textContent = `Next test starting in ${count}s...`;
       } else {
-        clearInterval(countdownTimer);
+        clearInterval(resultResetTimer);
+        resultResetTimer = null;
         initTypingTest();
       }
     }, 1000);
@@ -1701,11 +1819,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initTypingTest();
 
-  // --- 11. ELECTRON IPC SHORTCUTS (GLOBAL MUTE) ---
+  // --- 11. ELECTRON IPC & TAURI SHORTCUTS / NATIVE HYDRATION ---
   try {
     const { ipcRenderer } = require('electron');
     ipcRenderer.on('toggle-mute', () => {
       btnMute.click();
     });
   } catch (e) { }
+
+  if (isTauri) {
+    tauriListen('taptap://mute-changed', (event) => {
+      const muted = !!event.payload;
+      audio.setSuppressNativeSync(true);
+      audio.setMuted(muted);
+      audio.setSuppressNativeSync(false);
+      updateMasterMuteUI(muted);
+      try {
+        const raw = localStorage.getItem('taptap-audio-settings');
+        const parsed = raw ? JSON.parse(raw) : {};
+        parsed.masterMuted = muted;
+        localStorage.setItem('taptap-audio-settings', JSON.stringify(parsed));
+      } catch (e) { }
+    });
+
+    tauriInvoke('get_all_settings').then((nativeSettings) => {
+      if (!nativeSettings) return;
+      try {
+        localStorage.setItem('taptap-audio-settings', JSON.stringify(nativeSettings));
+        if (nativeSettings.theme) {
+          localStorage.setItem('taptap-theme', nativeSettings.theme);
+          document.documentElement.setAttribute('data-theme', nativeSettings.theme);
+          cachedThemeDark = (nativeSettings.theme === 'dark');
+          updateThemeIcon(nativeSettings.theme);
+        }
+        if (Array.isArray(nativeSettings.favoriteSwitches) && nativeSettings.favoriteSwitches.length > 0) {
+          localStorage.setItem('taptap-favorite-switches', JSON.stringify(nativeSettings.favoriteSwitches));
+        }
+        if (nativeSettings.keyboardLayout) {
+          localStorage.setItem('taptap-keyboard-layout', nativeSettings.keyboardLayout);
+        }
+      } catch (e) { }
+      audio.setSuppressNativeSync(true);
+      loadSettings();
+      renderKeyboardMatrix(currentLayoutId);
+    }).catch(() => { }).finally(() => {
+      audio.setSuppressNativeSync(false);
+    });
+  }
 });

@@ -7,13 +7,13 @@
   <meta name="description" content="Artisanal acoustic companion for mechanical keyboard and mouse sounds.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Nunito:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- Compact Window Shell (440px × 600px) -->
+  <!-- Fixed Companion Window Shell (540px × 650px) -->
   <main class="window-frame">
 
     <!-- Windows Minimalist Title Bar -->
@@ -482,21 +482,21 @@
 
           <div class="setting-card-mini">
             <div class="setting-info">
-              <span class="setting-title">GPU Hardware Acceleration</span>
-              <span class="setting-desc" id="gpuStatusDesc">Smooth 60/120+ FPS rendering (requires restart)</span>
+              <span class="setting-title">Right-Click Context Menu</span>
+              <span class="setting-desc">Allow right-click Inspect menu inside the app</span>
             </div>
             <label class="apple-toggle">
-              <input type="checkbox" id="chkGpuAcceleration" checked>
+              <input type="checkbox" id="chkRightClickMenu">
               <span class="toggle-slider"></span>
             </label>
           </div>
 
-          <div class="setting-card-mini" id="btnSettingsAbout" style="cursor:pointer;">
+          <div class="setting-card-mini setting-card-interactive" id="btnSettingsAbout" role="button" tabindex="0">
             <div class="setting-info">
               <span class="setting-title">About Taptap</span>
-              <span class="setting-desc">Version 1.1.0 • Spatial Surround Audio Companion</span>
+              <span class="setting-desc">Version 2.0.0 • Spatial Surround Audio Companion</span>
             </div>
-            <svg style="width:14px;height:14px;color:var(--text-tertiary);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>
+            <svg style="width:14px;height:14px;color:var(--text-tertiary);flex-shrink:0;" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="currentColor"/></svg>
           </div>
         </div>
 
@@ -570,7 +570,7 @@
       </div>
 
       <h2 class="about-app-title">Taptap</h2>
-      <div class="about-version-badge">Version 1.1.0</div>
+      <div class="about-version-badge">Version 2.0.0</div>
       <p class="about-app-desc">
         Bespoke 3D spatial surround acoustic companion for mechanical keyboard and mouse clicks.
       </p>
@@ -587,21 +587,6 @@
 
       <div class="about-footer-note">
         Crafted with precision & passion
-      </div>
-    </div>
-  </div>
-
-  <!-- Luxury Restart Confirmation Modal -->
-  <div class="modal-overlay" id="restartModal" aria-hidden="true">
-    <div class="restart-prompt-card">
-      <div class="restart-prompt-icon">⚡</div>
-      <h3 class="restart-prompt-title">Restart Required</h3>
-      <p class="restart-prompt-desc" id="restartPromptDesc">
-        GPU hardware acceleration settings updated. Restart Taptap now to apply changes?
-      </p>
-      <div class="restart-prompt-actions">
-        <button class="btn-prompt-secondary" id="btnRestartLater">Later</button>
-        <button class="btn-prompt-primary" id="btnRestartNow">Restart Now</button>
       </div>
     </div>
   </div>

@@ -1,0 +1,72 @@
+name: Build Taptap Windows (Rust)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    name: Windows x64 Installer & Portable
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Rust Stable (MSVC)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "src-tauri -> target"
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Verify Encrypted Acoustic Vaults
+        run: npm run vault:verify
+
+      - name: Run Rust Unit Tests
+        run: cargo test --release --manifest-path src-tauri/Cargo.toml
+
+      - name: Build NSIS Installer (Tauri)
+        run: npx tauri build --bundles nsis
+
+      - name: Stage Portable EXE & Installer
+        run: node scripts/build-portable.js
+
+      - name: Upload Windows Executables Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Taptap-Windows-x64
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            dist/Taptap_*_x64-setup.exe
+            dist/Taptap_*_x64-portable.exe
+
+      - name: Publish GitHub Release (on v* tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/Taptap_*_x64-setup.exe
+            dist/Taptap_*_x64-portable.exe

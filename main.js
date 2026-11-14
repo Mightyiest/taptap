@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, globalShortcut, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, globalShortcut, shell, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
@@ -20,7 +20,7 @@ if (!gotSingleInstanceLock) {
   });
 }
 
-// --- Persistent Application Configuration (GPU Acceleration & Performance) ---
+// --- Persistent Application Configuration ---
 function getConfigPath() {
   return path.join(app.getPath('userData'), 'taptap-config.json');
 }
@@ -34,7 +34,7 @@ function loadAppConfig() {
   } catch (e) {
     console.warn('[Taptap] Config load error:', e.message);
   }
-  return { gpuAcceleration: true, startupLaunch: false };
+  return { startupLaunch: false };
 }
 
 function saveAppConfig(config) {
@@ -137,18 +137,6 @@ function setWindowsAutoStart(enable) {
 app.commandLine.appendSwitch('disable-background-timer-throttling');
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
-
-// Apply GPU Hardware Acceleration based on user configuration
-if (appConfig.gpuAcceleration === false) {
-  app.disableHardwareAcceleration();
-  console.log('[Taptap] GPU Hardware Acceleration disabled by user setting.');
-} else {
-  // High-performance GPU rasterization flags for silky 60/120/144+ FPS rendering
-  app.commandLine.appendSwitch('enable-gpu-rasterization');
-  app.commandLine.appendSwitch('enable-zero-copy');
-  app.commandLine.appendSwitch('ignore-gpu-blocklist');
-  console.log('[Taptap] GPU Hardware Acceleration active (60/120/144+ FPS mode).');
-}
 
 let mainWindow = null;
 let tray = null;
@@ -267,16 +255,14 @@ function createWindow() {
     (app.getLoginItemSettings && app.getLoginItemSettings().wasOpenedAsHidden);
 
   mainWindow = new BrowserWindow({
-    width: 440,
-    height: 605,
-    minWidth: 440,
-    minHeight: 480,
-    maxWidth: 900,
-    maxHeight: 950,
+    width: 540,
+    height: 650,
     icon: process.platform === 'win32'
       ? path.join(__dirname, 'assets', 'icon.ico')
       : path.join(__dirname, 'assets', 'icon.png'),
-    resizable: true,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
     show: !isSilentStartup,
     frame: false, // Clean frameless minimalist aesthetic
     transparent: false,
@@ -352,23 +338,6 @@ function createWindow() {
     }
   });
 
-  // GPU Hardware Acceleration Status & Settings
-  ipcMain.handle('get-gpu-status', () => {
-    return appConfig.gpuAcceleration !== false;
-  });
-
-  ipcMain.handle('set-gpu-status', (event, enabled) => {
-    appConfig.gpuAcceleration = !!enabled;
-    saveAppConfig(appConfig);
-    return appConfig.gpuAcceleration;
-  });
-
-  // Smooth App Restart Trigger
-  ipcMain.on('restart-app', () => {
-    app.relaunch();
-    app.exit(0);
-  });
-
   // Windows Startup & Login Item Settings
   ipcMain.handle('get-startup-status', async () => {
     return await checkWindowsAutoStart();
@@ -378,13 +347,8 @@ function createWindow() {
     return await setWindowsAutoStart(enable);
   });
 
-  // High-performance direct window resize (zero DWM swapchain tearing, 60/120/144+ FPS)
-  ipcMain.on('resize-window', (event, { targetWidth, targetHeight }) => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    const [startW, startH] = mainWindow.getSize();
-    if (startW === targetWidth && startH === targetHeight) return;
-    mainWindow.setSize(targetWidth, targetHeight);
-  });
+  // Fixed window size enforced; resize-window retained as safe no-op
+  ipcMain.on('resize-window', () => {});
 
   // Open external URL in user's default web browser
   ipcMain.on('open-external-url', (event, url) => {
@@ -438,6 +402,7 @@ if (gotSingleInstanceLock) {
 
     uIOhook.on('mousedown', (e) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isFocused()) return;
         let code = 'MouseLeft';
         if (e.button === 2) code = 'MouseRight';
         else if (e.button === 3) code = 'MouseMiddle';
@@ -447,6 +412,7 @@ if (gotSingleInstanceLock) {
 
     uIOhook.on('mouseup', (e) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isFocused()) return;
         let code = 'MouseLeft';
         if (e.button === 2) code = 'MouseRight';
         else if (e.button === 3) code = 'MouseMiddle';

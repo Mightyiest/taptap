@@ -110,7 +110,7 @@ function verifyVault() {
     if (!fs.existsSync(dir)) return;
     const entries = fs.readdirSync(dir, { withFileTypes: true });
     for (const e of entries) {
-      if (e.name === 'node_modules' || e.name === '.git' || e.name === 'dist') continue;
+      if (e.name === 'node_modules' || e.name === '.git' || e.name === 'dist' || e.name === 'ui-dist' || e.name === 'target') continue;
       const p = path.join(dir, e.name);
       if (e.isDirectory()) {
         checkUnencrypted(p);
