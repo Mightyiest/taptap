@@ -43,6 +43,9 @@ jobs:
       - name: Verify Encrypted Acoustic Vaults
         run: npm run vault:verify
 
+      - name: Prepare UI Bundle
+        run: npm run ui:prepare
+
       - name: Run Rust Unit Tests
         run: cargo test --release --manifest-path src-tauri/Cargo.toml
 

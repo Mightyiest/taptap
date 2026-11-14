@@ -16,7 +16,7 @@
     "rust:installer": "node scripts/run-cargo.js --tauri build --bundles nsis",
     "rust:portable": "node scripts/build-portable.js",
     "rust:package": "npm run rust:installer && npm run rust:portable",
-    "rust:test": "node scripts/run-cargo.js test --manifest-path src-tauri/Cargo.toml",
+    "rust:test": "node scripts/prepare-ui.js && node scripts/run-cargo.js test --manifest-path src-tauri/Cargo.toml",
     "dist": "electron-builder --win",
     "dist:nsis": "electron-builder --win nsis",
     "dist:portable": "electron-builder --win portable"
