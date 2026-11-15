@@ -340,13 +340,13 @@ h1, h2, h3, h4, .serif-heading {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 36px;
+  gap: 32px;
   flex-wrap: wrap;
   padding: 20px 32px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  max-width: 780px;
+  max-width: 880px;
   margin: 0 auto;
   box-shadow: var(--shadow-sm);
 }
@@ -1082,6 +1082,214 @@ h1, h2, h3, h4, .serif-heading {
 .demo-mouse-btn:active, .demo-mouse-btn.pressed {
   background: var(--key-pressed-bg);
   transform: translateY(1px);
+}
+
+/* ==========================================================================
+   NOW WRITTEN IN RUST! — HARDWARE RESOURCES & DIFFERENCE SECTION
+   ========================================================================== */
+.section-rust-upgrade {
+  padding: 80px 0;
+  background: var(--bg-site-secondary);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rust-highlight-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-burgundy);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 14px var(--accent-burgundy-glow);
+}
+
+.rust-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 22px;
+  max-width: 980px;
+  margin: 0 auto 32px;
+}
+
+.rust-resource-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all var(--transition-smooth);
+}
+
+.rust-resource-card.featured {
+  border: 2px solid var(--accent-burgundy);
+  box-shadow: var(--shadow-md);
+}
+
+.rust-resource-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.rust-res-kicker {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-subtle);
+}
+
+.rust-res-stat-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rust-res-new {
+  font-family: var(--font-heading);
+  font-size: 2.05rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--accent-burgundy);
+}
+
+.rust-res-old {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  text-decoration: line-through;
+}
+
+.rust-res-badge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 4px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-gold-soft);
+  color: var(--text-main);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.rust-res-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.rust-diff-table-card {
+  max-width: 980px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.rust-diff-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 18px 26px;
+  background: var(--bg-card-subtle);
+  border-bottom: 1px solid var(--border-main);
+}
+
+.rust-diff-table-header h3 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.rust-diff-table-sub {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent-burgundy);
+}
+
+.rust-diff-scroll {
+  overflow-x: auto;
+}
+
+.rust-diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.rust-diff-table th {
+  padding: 14px 22px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.rust-diff-table td {
+  padding: 15px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.rust-diff-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rust-diff-table tbody tr:hover {
+  background: var(--bg-card-subtle);
+}
+
+.rust-col-metric {
+  font-weight: 700;
+  color: var(--text-main) !important;
+}
+
+.rust-col-old {
+  color: var(--text-subtle) !important;
+}
+
+.rust-col-new {
+  font-weight: 700;
+  color: var(--text-main) !important;
+}
+
+.rust-gain-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-gold-soft);
+  color: var(--accent-burgundy);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .rust-diff-table-header {
+    padding: 16px 18px;
+  }
+
+  .rust-diff-table th,
+  .rust-diff-table td {
+    padding: 12px 14px;
+    font-size: 0.84rem;
+  }
 }
 
 /* ==========================================================================

@@ -26,6 +26,7 @@
       </a>
 
       <ul class="nav-links">
+        <li><a href="#rust-upgrade" class="nav-link">Now in Rust</a></li>
         <li><a href="#demo" class="nav-link">Live Soundstage</a></li>
         <li><a href="#features" class="nav-link">Features</a></li>
         <li><a href="#switches" class="nav-link">Switch Gallery</a></li>
@@ -55,7 +56,7 @@
   <section class="hero-section">
     <div class="site-container">
       <div class="hero-pill-badge">
-        <span>✦ v2.0.0 Native Rust Edition • ~5 MB Background RAM ✦</span>
+        <span>✦ Now Written in Rust! • 2.9 MB Tray RAM (v2.0.0) ✦</span>
       </div>
 
       <h1 class="hero-title">
@@ -63,7 +64,7 @@
       </h1>
 
       <p class="hero-subtitle">
-        Transform every keystroke and tactile click into a rich, three-dimensional acoustic soundstage. Powered by a native Rust + Tauri v2 audio engine (~5 MB tray RAM — 95% less than Electron) on Windows, plus instant Web Audio HRTF right here in your browser.
+        Transform every keystroke and tactile click into a rich, three-dimensional acoustic soundstage. <strong>Now written in native Rust!</strong> — slashing stealth tray RAM from <strong>70–100+ MB down to 2.9 MB</strong> with zero Chromium or Electron bloat, plus live Web Audio HRTF right here in your browser.
       </p>
 
       <div class="hero-cta-group">
@@ -79,20 +80,130 @@
 
       <div class="hero-metrics-bar">
         <div class="hero-metric-item">
-          <span class="hero-metric-val">~5 MB</span>
-          <span class="hero-metric-lbl">Stealth Tray RAM</span>
+          <span class="hero-metric-val">2.9 MB</span>
+          <span class="hero-metric-lbl">Tray RAM (vs 100+ MB)</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-val">4.71 MB</span>
+          <span class="hero-metric-lbl">Setup (vs 74.7 MB)</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-val">0</span>
+          <span class="hero-metric-lbl">WebView Tray Procs</span>
         </div>
         <div class="hero-metric-item">
           <span class="hero-metric-val">22 + 8</span>
           <span class="hero-metric-lbl">Switch & Mouse Packs</span>
         </div>
-        <div class="hero-metric-item">
-          <span class="hero-metric-val">4.71 MB</span>
-          <span class="hero-metric-lbl">Rust Installer</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NOW WRITTEN IN RUST & HARDWARE DIFFERENCE ================= -->
+  <section class="section-rust-upgrade" id="rust-upgrade">
+    <div class="site-container">
+      <div class="section-header">
+        <span class="rust-highlight-pill">Now Written in Rust! • v2.0.0</span>
+        <h2 class="section-title">Tiny Hardware Footprint. Massive Difference.</h2>
+        <p class="section-desc">
+          We rebuilt Taptap's desktop engine from the ground up in native <strong>Rust + Tauri v2</strong>, removing the heavy Electron &amp; Chromium runtime so it runs practically invisible while you game, code, or stream.
+        </p>
+      </div>
+
+      <!-- Top 3 Hardware Resource Cards -->
+      <div class="rust-resource-grid">
+        <div class="rust-resource-card featured">
+          <span class="rust-res-kicker">Idle Hardware Memory (Stealth Tray)</span>
+          <div class="rust-res-stat-row">
+            <span class="rust-res-new">2.9 MB RAM</span>
+            <span class="rust-res-old">70–100+ MB</span>
+          </div>
+          <span class="rust-res-badge">~96% Less RAM Usage</span>
+          <p class="rust-res-desc">
+            Closing the Taptap window tears down WebView2 completely, leaving a single native Rust process running at just <strong>2.9 MB</strong> in your system tray.
+          </p>
         </div>
-        <div class="hero-metric-item">
-          <span class="hero-metric-val">100%</span>
-          <span class="hero-metric-lbl">Private & Offline</span>
+
+        <div class="rust-resource-card">
+          <span class="rust-res-kicker">Installer &amp; Portable Disk Footprint</span>
+          <div class="rust-res-stat-row">
+            <span class="rust-res-new">4.71 MB</span>
+            <span class="rust-res-old">74.7 MB</span>
+          </div>
+          <span class="rust-res-badge">93.7% Smaller Download</span>
+          <p class="rust-res-desc">
+            No bundled Chromium browser or Node.js modules. Get the NSIS installer at <strong>4.71 MB</strong> or single-file portable <code>.exe</code> at <strong>11.07 MB</strong>.
+          </p>
+        </div>
+
+        <div class="rust-resource-card">
+          <span class="rust-res-kicker">CPU, Audio &amp; Input Architecture</span>
+          <div class="rust-res-stat-row">
+            <span class="rust-res-new">Native WASAPI</span>
+            <span class="rust-res-old">Chromium + IPC</span>
+          </div>
+          <span class="rust-res-badge">0 Background Browser Processes</span>
+          <p class="rust-res-desc">
+            Lock-free 64-voice Rust audio mixer (<code>cpal</code> + <code>symphonia</code>) with direct Win32 <code>WH_KEYBOARD_LL</code> hooks—no V8 garbage-collection spikes.
+          </p>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Electron vs Rust Comparison Table -->
+      <div class="rust-diff-table-card">
+        <div class="rust-diff-table-header">
+          <h3>Electron (v1.x) vs. Native Rust (v2.0.0)</h3>
+          <span class="rust-diff-table-sub">Same Luxury 3D Audio • 96% Lighter Footprint</span>
+        </div>
+        <div class="rust-diff-scroll">
+          <table class="rust-diff-table">
+            <thead>
+              <tr>
+                <th>Hardware Resource / Subsystem</th>
+                <th>v1.x (Electron + Chromium)</th>
+                <th>v2.0.0 (Now Written in Rust)</th>
+                <th>Difference</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="rust-col-metric">Stealth Tray RAM Usage</td>
+                <td class="rust-col-old">70 MB – 100+ MB resident</td>
+                <td class="rust-col-new">2.9 MB private working set</td>
+                <td><span class="rust-gain-pill">~96% Less RAM</span></td>
+              </tr>
+              <tr>
+                <td class="rust-col-metric">Background Browser Processes</td>
+                <td class="rust-col-old">Chromium Main + Renderer + GPU + Node</td>
+                <td class="rust-col-new">0 WebView2 processes when minimized</td>
+                <td><span class="rust-gain-pill">Zero Tray Bloat</span></td>
+              </tr>
+              <tr>
+                <td class="rust-col-metric">Windows Installer Size</td>
+                <td class="rust-col-old">~74.7 MB setup bundle</td>
+                <td class="rust-col-new">4.71 MB (<code>Taptap_2.0.0_x64-setup.exe</code>)</td>
+                <td><span class="rust-gain-pill">93.7% Smaller</span></td>
+              </tr>
+              <tr>
+                <td class="rust-col-metric">Portable Single-File Executable</td>
+                <td class="rust-col-old">~74.4 MB self-extracting Electron</td>
+                <td class="rust-col-new">11.07 MB static <code>.exe</code> (all 23 packs built in)</td>
+                <td><span class="rust-gain-pill">85.1% Smaller</span></td>
+              </tr>
+              <tr>
+                <td class="rust-col-metric">Audio Mixing &amp; Spatial Engine</td>
+                <td class="rust-col-old">Web Audio API inside Chromium renderer</td>
+                <td class="rust-col-new">Native Rust <code>cpal</code> WASAPI + <code>symphonia</code> DSP</td>
+                <td><span class="rust-gain-pill">Lock-Free, No GC</span></td>
+              </tr>
+              <tr>
+                <td class="rust-col-metric">Global Keyboard &amp; Mouse Hooks</td>
+                <td class="rust-col-old">Node <code>uiohook-napi</code> over Electron IPC</td>
+                <td class="rust-col-new">Direct Win32 <code>WH_KEYBOARD_LL</code> / <code>WH_MOUSE_LL</code></td>
+                <td><span class="rust-gain-pill">Sub-ms Trigger</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -424,9 +535,9 @@
           <div class="feature-icon-badge">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
           </div>
-          <h3>~5 MB Stealth Tray Mode</h3>
+          <h3>2.9 MB Stealth Tray Mode</h3>
           <p>
-            Closing the window completely destroys the UI layer, cutting idle memory from <strong>70–100+ MB</strong> down to <strong>~5 MB</strong> while keeping audio and <kbd>Ctrl+Shift+M</kbd> mute live.
+            Closing the window completely destroys the UI layer, cutting idle memory from <strong>70–100+ MB</strong> down to <strong>2.9 MB RAM</strong> while keeping audio and <kbd>Ctrl+Shift+M</kbd> mute live.
           </p>
         </div>
 
@@ -603,14 +714,14 @@
         <span class="section-tag">Get Taptap v2.0.0</span>
         <h2 class="section-title">Download Native Rust Companion</h2>
         <p class="section-desc">
-          Rebuilt from Electron to native Rust + Tauri v2 — 95% less background RAM and 93% smaller download sizes with all 22 switch packs & 8 mouse profiles embedded.
+          Now written in native Rust + Tauri v2 — 2.9 MB tray RAM (down from 70–100+ MB) and 93% smaller download sizes with all 22 switch packs &amp; 8 mouse profiles embedded.
         </p>
       </div>
 
       <div class="v2-rust-benchmark" aria-label="Electron to Rust Improvements">
         <div class="v2-bench-item">
           <span class="v2-bench-label">Background Tray RAM</span>
-          <span class="v2-bench-value"><span class="v2-bench-old">70–100+ MB</span> ~5 MB</span>
+          <span class="v2-bench-value"><span class="v2-bench-old">70–100+ MB</span> 2.9 MB</span>
         </div>
         <div class="v2-bench-item">
           <span class="v2-bench-label">Setup Installer</span>
@@ -633,7 +744,7 @@
           <div>
             <span class="download-meta-pill">NSIS Setup • 4.71 MB</span>
             <h3>Windows Installer</h3>
-            <p>Full Windows x64 setup with Start Menu integration, clean uninstaller, and ~5 MB background tray mode.</p>
+            <p>Full Windows x64 setup with Start Menu integration, clean uninstaller, and 2.9 MB background tray mode.</p>
           </div>
           <a href="https://github.com/Mightyiest/taptap/releases/latest/download/Taptap_2.0.0_x64-setup.exe" class="btn-download-action">
             <span>Download Setup (4.71 MB)</span>
