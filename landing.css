@@ -1248,10 +1248,64 @@ h1, h2, h3, h4, .serif-heading {
 
 .download-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
+}
+
+.v2-rust-benchmark {
+  max-width: 960px;
+  margin: 0 auto 32px;
+  padding: 20px 26px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  text-align: center;
+}
+
+.v2-bench-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.v2-bench-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-subtle);
+}
+
+.v2-bench-value {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-burgundy);
+}
+
+.v2-bench-old {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+  text-decoration: line-through;
+  margin-right: 6px;
+  font-weight: 600;
+}
+
+.download-meta-pill {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-burgundy);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .download-card {
