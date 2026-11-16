@@ -1,3 +1,23 @@
+# ✦ Taptap v2.1.0 — Dual-Phase Mouse Clicks & Honest Memory Architecture ✦
+
+Welcome to **Taptap v2.1.0**, introducing realistic **two-phase mouse press-down & release (upstroke)** acoustics across both the native Rust desktop engine and the live web demo, plus a clearer GitHub Pages hardware resource breakdown.
+
+---
+
+### ✨ What's New in v2.1.0
+
+- **🖱️ Realistic Mouse Press-Down & Release (Upstroke) Audio**:
+  - Mouse clicks now play a full tactile actuation sound on press (`MouseDown`) and a lighter spring-reset rebound sound on release (`MouseUp`).
+  - Both the native Rust vault loader (`src-tauri/src/vault.rs`) and the Web Audio engine (`audio-engine.js`) automatically split two-transient mouse samples or sculpt a crisp `420 Hz` high-pass rebound buffer in RAM from single-transient recordings—zero `.tap` size bloat.
+  - Added a dedicated **Mouse Release Audio (Upstroke)** toggle (`#chkMouseUpstroke`, enabled by default) in **Mouse → Mouse Sound Settings**, persisted via `playMouseUpstrokes` across Rust, Electron, and web settings.
+  - Added drag-release cursor panning (`compute_cursor_x_pan` on `MouseUp`) and external-press tracking in `main.rs` so releasing clicks outside or across window boundaries never double-fires.
+  - Wired press + release mouse audio on the GitHub Pages live soundstage (`landing.js`).
+
+- **🌐 GitHub Pages Updates**:
+  - Added a dedicated **Now Written in Rust!** hardware comparison section (`2.9 MB` stealth tray RAM vs `70–100+ MB` Electron) and transparently documented the on-demand `~150 MB` WebView2 UI process while the window is open (freed back to `2.9 MB` when closed via `—` or `×`).
+
+---
+
 # ✦ Taptap v2.0.0 — Native Rust Engine & 95% Lower Memory Release ✦
 
 Welcome to **Taptap v2.0.0** — our biggest architectural leap yet. Taptap's desktop runtime has been **rebuilt from the ground up in native Rust + Tauri v2**, replacing the Chromium-bundled Electron runtime to cut background memory usage from **`70–100+ MB` down to `~5 MB`** (~95% reduction) and shrink the Windows installer from **`~74.7 MB` down to `4.71 MB`**.

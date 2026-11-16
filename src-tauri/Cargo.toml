@@ -1,6 +1,6 @@
 [package]
 name = "taptap"
-version = "2.0.0"
+version = "2.1.0"
 description = "Lightweight Rust + Tauri spatial surround acoustic companion for keyboard and mouse"
 authors = ["Taptap Team"]
 license = "MIT"
