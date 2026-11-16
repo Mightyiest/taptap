@@ -570,6 +570,7 @@ class TaptapAudioEngine {
     this.activeKeyboardPack = 'pulse';
     this.activeMousePack = 'Bloody V8';
     this.playUpstrokes = true;
+    this.playMouseUpstrokes = true;
 
     // Cached AudioBuffers
     this.keyboardBuffers = {};
@@ -619,6 +620,7 @@ class TaptapAudioEngine {
         activeKeyboardPack: this.activeKeyboardPack || 'pulse',
         activeMousePack: this.activeMousePack || 'Bloody V8',
         playUpstrokes: !!this.playUpstrokes,
+        playMouseUpstrokes: !!this.playMouseUpstrokes,
         dynamicCursorTracking: !!this.dynamicCursorTracking,
         verticalElevation: !!this.verticalElevation,
         spatialMode: this.mode || 'hrtf',
@@ -711,6 +713,11 @@ class TaptapAudioEngine {
 
   setUpstrokes(enabled) {
     this.playUpstrokes = !!enabled;
+    this.scheduleNativeSync();
+  }
+
+  setMouseUpstrokes(enabled) {
+    this.playMouseUpstrokes = !!enabled;
     this.scheduleNativeSync();
   }
 
@@ -932,6 +939,144 @@ class TaptapAudioEngine {
   }
 
   /**
+   * Builds a realistic press-down + spring-release AudioBuffer pair in RAM.
+   */
+  buildMouseProfileBuffers(audioBuf) {
+    if (!this.ctx || !audioBuf || audioBuf.length === 0) {
+      return { down: audioBuf, up: audioBuf };
+    }
+    const sr = Math.max(8000, audioBuf.sampleRate || 44100);
+    const pcm = audioBuf.getChannelData(0);
+    const len = pcm.length;
+
+    const makeMonoBuffer = (arr) => {
+      const b = this.ctx.createBuffer(1, arr.length, sr);
+      b.getChannelData(0).set(arr);
+      return b;
+    };
+
+    const blockLen = Math.max(32, Math.floor((sr * 3) / 1000));
+    const numBlocks = Math.ceil(len / blockLen);
+    const blockPeaks = new Float32Array(numBlocks);
+    let bPeak1 = 0;
+    let peak1Amp = 0;
+
+    for (let b = 0; b < numBlocks; b++) {
+      const s = b * blockLen;
+      const e = Math.min(len, s + blockLen);
+      let m = 0;
+      for (let i = s; i < e; i++) {
+        const a = Math.abs(pcm[i]);
+        if (a > m) m = a;
+      }
+      blockPeaks[b] = m;
+      if (m > peak1Amp) {
+        peak1Amp = m;
+        bPeak1 = b;
+      }
+    }
+
+    if (peak1Amp < 1e-5) {
+      return { down: audioBuf, up: audioBuf };
+    }
+
+    const minSepBlocks = Math.max(4, Math.floor(((sr * 25) / 1000) / blockLen));
+    if (bPeak1 + minSepBlocks < numBlocks) {
+      let bPeak2 = bPeak1 + minSepBlocks;
+      let peak2Amp = 0;
+      for (let b = bPeak1 + minSepBlocks; b < numBlocks; b++) {
+        if (blockPeaks[b] > peak2Amp) {
+          peak2Amp = blockPeaks[b];
+          bPeak2 = b;
+        }
+      }
+      let bValley = bPeak1;
+      let valleyAmp = peak1Amp;
+      for (let b = bPeak1; b <= bPeak2; b++) {
+        if (blockPeaks[b] < valleyAmp) {
+          valleyAmp = blockPeaks[b];
+          bValley = b;
+        }
+      }
+      if (peak2Amp >= peak1Amp * 0.22 && valleyAmp <= peak2Amp * 0.45) {
+        const splitIdx = Math.max(1, Math.min(len - 1, bValley * blockLen));
+        const downArr = new Float32Array(pcm.subarray(0, splitIdx));
+        const fadeOutLen = Math.max(1, Math.min(downArr.length, Math.floor((sr * 4) / 1000)));
+        const tailStart = downArr.length - fadeOutLen;
+        for (let i = 0; i < fadeOutLen; i++) {
+          downArr[tailStart + i] *= 1 - i / fadeOutLen;
+        }
+
+        const thresh = peak2Amp * 0.08;
+        let trimIdx = splitIdx;
+        while (trimIdx < len && Math.abs(pcm[trimIdx]) < thresh) trimIdx++;
+        if (trimIdx >= len) trimIdx = splitIdx;
+        trimIdx = Math.max(splitIdx, trimIdx - Math.floor((sr * 2) / 1000));
+
+        const upArr = new Float32Array(pcm.subarray(trimIdx));
+        const fadeInLen = Math.max(1, Math.min(upArr.length, Math.floor((sr * 2) / 1000)));
+        for (let i = 0; i < fadeInLen; i++) {
+          upArr[i] *= (i + 1) / fadeInLen;
+        }
+
+        return {
+          down: makeMonoBuffer(downArr),
+          up: makeMonoBuffer(upArr)
+        };
+      }
+    }
+
+    // Single-transient sample: sculpt a crisp, lighter micro-switch release in RAM
+    let peakSampleIdx = 0;
+    let maxAbs = 0;
+    for (let i = 0; i < len; i++) {
+      const a = Math.abs(pcm[i]);
+      if (a > maxAbs) {
+        maxAbs = a;
+        peakSampleIdx = i;
+      }
+    }
+    const start = Math.max(0, peakSampleIdx - Math.floor((sr * 2) / 1000));
+    const maxUpLen = Math.max(64, Math.floor((sr * 52) / 1000));
+    const end = Math.min(len, start + maxUpLen);
+    const upLen = Math.max(1, end - start);
+    const upArr = new Float32Array(upLen);
+
+    const dt = 1.0 / sr;
+    const rc = 1.0 / (2.0 * Math.PI * 420.0);
+    const hpAlpha = rc / (rc + dt);
+    let prevX = 0;
+    let prevY = 0;
+    const fadeIn = Math.max(1, Math.min(upLen, Math.floor((sr * 2) / 1000)));
+    let maxUp = 0;
+
+    for (let i = 0; i < upLen; i++) {
+      const x = pcm[start + i];
+      const y = hpAlpha * (prevY + x - prevX);
+      prevX = x;
+      prevY = y;
+
+      const tNorm = i / upLen;
+      const env = Math.exp(-4.2 * tNorm) * (1.0 - tNorm * tNorm);
+      const attack = i < fadeIn ? (i + 1) / fadeIn : 1.0;
+      const shaped = y * env * attack;
+      upArr[i] = shaped;
+      const absShaped = Math.abs(shaped);
+      if (absShaped > maxUp) maxUp = absShaped;
+    }
+
+    if (maxUp > 1e-6) {
+      const norm = (peak1Amp * 0.85) / maxUp;
+      for (let i = 0; i < upLen; i++) upArr[i] *= norm;
+    }
+
+    return {
+      down: audioBuf,
+      up: makeMonoBuffer(upArr)
+    };
+  }
+
+  /**
    * Load Obfuscated Mouse Soundpack Container (vm_all.tap)
    */
   async loadMousePack(mousePackName = 'Bloody V8') {
@@ -966,24 +1111,42 @@ class TaptapAudioEngine {
 
       const dataBaseOffset = 20 + manifestLen;
       const decodePromises = [];
+      const explicitParts = {};
 
       for (const [token, info] of Object.entries(manifest)) {
         const scrambledChunk = new Uint8Array(arrayBuffer, dataBaseOffset + info.offset, info.length);
         const rawArrayBuffer = this.descrambleBytes(scrambledChunk);
 
-        const resolvedMouseName = VAULT_MOUSE_TOKEN_MAP[token] || token;
+        const isUpToken = token.endsWith('_u');
+        const isDownToken = token.endsWith('_d');
+        const baseToken = (isUpToken || isDownToken) ? token.slice(0, -2) : token;
+        const resolvedMouseName = VAULT_MOUSE_TOKEN_MAP[baseToken] || baseToken;
 
         decodePromises.push(
           this.ctx.decodeAudioData(rawArrayBuffer)
             .then(audioBuf => {
-              this.mouseBuffers[resolvedMouseName] = audioBuf;
-              this.mouseBuffers[token] = audioBuf;
+              if (isUpToken || isDownToken) {
+                if (!explicitParts[resolvedMouseName]) explicitParts[resolvedMouseName] = {};
+                explicitParts[resolvedMouseName][isUpToken ? 'up' : 'down'] = audioBuf;
+              } else {
+                const profile = this.buildMouseProfileBuffers(audioBuf);
+                this.mouseBuffers[resolvedMouseName] = profile;
+                this.mouseBuffers[token] = profile;
+              }
             })
             .catch(e => console.warn(`[Vault] Decode failed for mouse: ${token}`, e))
         );
       }
 
       await Promise.all(decodePromises);
+      for (const [modelName, parts] of Object.entries(explicitParts)) {
+        if (parts.down) {
+          this.mouseBuffers[modelName] = {
+            down: parts.down,
+            up: parts.up || this.buildMouseProfileBuffers(parts.down).up
+          };
+        }
+      }
       console.log(`[Taptap Vault] Decrypted & loaded mouse vault container (${Object.keys(this.mouseBuffers).length / 2} mouse models)`);
     } catch (err) {
       console.warn(`[Vault Loader] Failed to load mouse container:`, err.message);
@@ -1051,7 +1214,7 @@ class TaptapAudioEngine {
 
     if (this.isTauri) {
       const isMouse = code && code.startsWith('Mouse');
-      if (isMouse && (this.mouseMuted || isUpstroke)) return null;
+      if (isMouse && (this.mouseMuted || (isUpstroke && !this.playMouseUpstrokes))) return null;
       if (!isMouse && (this.keyboardMuted || (isUpstroke && !this.playUpstrokes))) return null;
 
       const rawPan = (customPan !== null && customPan !== undefined) ? customPan : this.getKeyPan(code);
@@ -1087,21 +1250,23 @@ class TaptapAudioEngine {
     // Handle Mouse Clicks (Bloody V8 / Mouse Vault)
     if (code.startsWith('Mouse')) {
       if (this.mouseMuted) return null; // Dedicated Mouse Mute
-      if (isUpstroke) return null;
+      if (isUpstroke && !this.playMouseUpstrokes) return null;
 
       if (code === 'MouseRight') playbackRate *= 1.03;
       if (code === 'MouseMiddle') playbackRate *= 0.97;
+      if (isUpstroke) playbackRate *= 1.06;
 
-      const mouseBuf = this.mouseBuffers[this.activeMousePack] || this.mouseBuffers['Bloody V8'];
-      const effectiveGain = this.mouseVolume; // Dedicated Mouse Volume
+      const mouseProfile = this.mouseBuffers[this.activeMousePack] || this.mouseBuffers['Bloody V8'];
+      const mouseBuf = mouseProfile ? (isUpstroke ? mouseProfile.up : mouseProfile.down) : null;
+      const effectiveGain = this.mouseVolume * (isUpstroke ? 0.62 : 1.0); // Dedicated Mouse Volume
 
       if (mouseBuf) {
         this.playBuffer(mouseBuf, scaledPan, playbackRate, effectiveGain, code);
       } else {
-        this.synthesizeMouseSound(scaledPan, playbackRate);
+        this.synthesizeMouseSound(scaledPan, playbackRate, isUpstroke);
       }
 
-      return { code, pan: scaledPan, rawPan, isUpstroke: false };
+      return { code, pan: scaledPan, rawPan, isUpstroke: !!isUpstroke };
     }
 
     // Handle Keyboard Keypresses (Lofree Flow 2 Vault)
@@ -1246,23 +1411,24 @@ class TaptapAudioEngine {
     setTimeout(cleanup, (buffer.duration / rate + 0.25) * 1000);
   }
 
-  synthesizeMouseSound(scaledPan, rate) {
+  synthesizeMouseSound(scaledPan, rate, isUpstroke = false) {
     const now = this.ctx.currentTime;
-    const spatialNode = this.createSpatialNode(scaledPan);
+    const spatialNode = this.createSpatialNode(scaledPan, 'MouseLeft');
     const osc = this.ctx.createOscillator();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1150 * rate, now);
-    osc.frequency.exponentialRampToValueAtTime(320, now + 0.02);
+    const dur = isUpstroke ? 0.014 : 0.02;
+    osc.frequency.setValueAtTime((isUpstroke ? 1450 : 1150) * rate, now);
+    osc.frequency.exponentialRampToValueAtTime(isUpstroke ? 520 : 320, now + dur);
 
     const gain = this.ctx.createGain();
-    const effectiveGain = 0.7 * this.mouseVolume;
+    const effectiveGain = (isUpstroke ? 0.43 : 0.7) * this.mouseVolume;
     gain.gain.setValueAtTime(effectiveGain, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
     osc.connect(gain);
     gain.connect(spatialNode);
     osc.start(now);
-    osc.stop(now + 0.02);
+    osc.stop(now + dur);
 
     setTimeout(() => {
       try {

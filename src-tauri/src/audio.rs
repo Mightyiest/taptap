@@ -2,7 +2,7 @@ use crate::settings::AppSettings;
 use crate::spatial::{
     compute_spatial_maps_for_layout, get_sound_category, row_3d_offset, LayoutMaps,
 };
-use crate::vault::{DecodedSample, KeyboardPack, VaultCache};
+use crate::vault::{DecodedSample, KeyboardPack, MouseProfile, VaultCache};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use parking_lot::{Mutex, RwLock};
 use std::collections::HashMap;
@@ -44,6 +44,7 @@ pub struct AudioConfig {
     pub pitch_jitter: f32,
     pub mode: SpatialMode,
     pub play_upstrokes: bool,
+    pub play_mouse_upstrokes: bool,
     pub dynamic_cursor_tracking: bool,
     pub vertical_elevation: bool,
     pub elevation_depth: f32,
@@ -71,6 +72,7 @@ impl AudioConfig {
             pitch_jitter: (s.pitch_jitter as f32 / 1000.0).clamp(0.0, 0.08),
             mode: SpatialMode::from_str(&s.spatial_mode),
             play_upstrokes: s.play_upstrokes,
+            play_mouse_upstrokes: s.play_mouse_upstrokes,
             dynamic_cursor_tracking: s.dynamic_cursor_tracking,
             vertical_elevation: s.vertical_elevation,
             elevation_depth: 1.0,
@@ -580,7 +582,7 @@ pub struct AudioController {
     layout_maps: RwLock<LayoutMaps>,
     vault: Mutex<VaultCache>,
     active_kb_pack: RwLock<Option<Arc<KeyboardPack>>>,
-    active_mouse_sample: RwLock<Option<DecodedSample>>,
+    active_mouse_profile: RwLock<Option<MouseProfile>>,
     voice_tx: SyncSender<VoiceSpawn>,
     recent_key_triggers: Mutex<HashMap<(String, bool), Instant>>,
 }
@@ -596,7 +598,7 @@ impl AudioController {
             layout_maps: RwLock::new(initial_maps),
             vault: Mutex::new(VaultCache::new(vault_dir)),
             active_kb_pack: RwLock::new(None),
-            active_mouse_sample: RwLock::new(None),
+            active_mouse_profile: RwLock::new(None),
             voice_tx: tx,
             recent_key_triggers: Mutex::new(HashMap::with_capacity(64)),
         });
@@ -654,10 +656,10 @@ impl AudioController {
         self.config.write().active_mouse_pack = mouse_name.to_string();
         let loaded = {
             let mut vault = self.vault.lock();
-            vault.get_mouse_sample(mouse_name)
+            vault.get_mouse_profile(mouse_name)
         };
-        if let Some(sample) = loaded {
-            *self.active_mouse_sample.write() = Some(sample);
+        if let Some(profile) = loaded {
+            *self.active_mouse_profile.write() = Some(profile);
         }
     }
 
@@ -677,6 +679,7 @@ impl AudioController {
             cfg.pitch_jitter = (s.pitch_jitter as f32 / 1000.0).clamp(0.0, 0.08);
             cfg.mode = SpatialMode::from_str(&s.spatial_mode);
             cfg.play_upstrokes = s.play_upstrokes;
+            cfg.play_mouse_upstrokes = s.play_mouse_upstrokes;
             cfg.dynamic_cursor_tracking = s.dynamic_cursor_tracking;
             cfg.vertical_elevation = s.vertical_elevation;
             cfg.keyboard_layout = s.keyboard_layout.clone();
@@ -688,7 +691,7 @@ impl AudioController {
         if prev_kb != s.active_keyboard_pack || self.active_kb_pack.read().is_none() {
             self.set_keyboard_pack(&s.active_keyboard_pack);
         }
-        if prev_mouse != s.active_mouse_pack || self.active_mouse_sample.read().is_none() {
+        if prev_mouse != s.active_mouse_pack || self.active_mouse_profile.read().is_none() {
             self.set_mouse_pack(&s.active_mouse_pack);
         }
     }
@@ -778,7 +781,24 @@ impl AudioController {
 
         let is_mouse = code.starts_with("Mouse");
         if is_mouse {
-            if cfg.mouse_muted || is_upstroke {
+            if cfg.mouse_muted {
+                return None;
+            }
+            if dedupe {
+                let now = Instant::now();
+                let mut recent = self.recent_key_triggers.lock();
+                if is_upstroke {
+                    recent.remove(&(code.to_string(), false));
+                }
+                let key = (code.to_string(), is_upstroke);
+                if let Some(prev) = recent.get(&key) {
+                    if prev.elapsed() < Duration::from_millis(25) {
+                        return None;
+                    }
+                }
+                recent.insert(key, now);
+            }
+            if is_upstroke && !cfg.play_mouse_upstrokes {
                 return None;
             }
         } else {
@@ -826,14 +846,22 @@ impl AudioController {
             } else if code == "MouseMiddle" {
                 playback_rate *= 0.97;
             }
+            if is_upstroke {
+                playback_rate *= 1.06;
+            }
 
-            let gain = cfg.mouse_volume * cfg.master_volume;
-            let source = match self.active_mouse_sample.read().as_ref() {
-                Some(s) => VoiceSource::Sample(s.clone()),
+            let base_gain = if is_upstroke { 0.62 } else { 1.0 };
+            let gain = cfg.mouse_volume * base_gain * cfg.master_volume;
+            let source = match self.active_mouse_profile.read().as_ref() {
+                Some(profile) => VoiceSource::Sample(if is_upstroke {
+                    profile.up.clone()
+                } else {
+                    profile.down.clone()
+                }),
                 None => VoiceSource::Synth {
-                    start_freq: 1150.0 * playback_rate,
-                    end_freq: 320.0,
-                    duration_sec: 0.02,
+                    start_freq: (if is_upstroke { 1450.0 } else { 1150.0 }) * playback_rate,
+                    end_freq: if is_upstroke { 520.0 } else { 320.0 },
+                    duration_sec: if is_upstroke { 0.014 } else { 0.02 },
                     is_mouse: true,
                 },
             };
@@ -854,7 +882,7 @@ impl AudioController {
                 pan: scaled_pan,
                 raw_pan,
                 row: None,
-                is_upstroke: false,
+                is_upstroke,
             });
         }
 
@@ -1118,5 +1146,30 @@ mod tests {
         assert_eq!(parsed.theme, "dark");
         assert!(parsed.startup_launch);
         assert_eq!(parsed.active_keyboard_pack, "pulse");
+        assert!(parsed.play_mouse_upstrokes);
+    }
+
+    #[test]
+    fn mouse_press_and_release_respects_toggle() {
+        let mut settings = AppSettings::default();
+        let (ctrl, rx) = AudioController::build_parts(resolve_vault_dir(None), &settings);
+
+        let down = ctrl.trigger_checked("MouseLeft", false, Some(-0.2), true);
+        assert!(down.is_some());
+        assert!(!down.unwrap().is_upstroke);
+        assert!(rx.try_recv().is_ok());
+
+        let up = ctrl.trigger_checked("MouseLeft", true, Some(-0.2), true);
+        assert!(up.is_some());
+        assert!(up.unwrap().is_upstroke);
+        assert!(rx.try_recv().is_ok());
+
+        settings.play_mouse_upstrokes = false;
+        ctrl.update_from_settings(&settings);
+
+        assert!(ctrl.trigger_checked("MouseLeft", false, Some(0.0), true).is_some());
+        assert!(rx.try_recv().is_ok());
+        assert!(ctrl.trigger_checked("MouseLeft", true, Some(0.0), true).is_none());
+        assert!(rx.try_recv().is_err());
     }
 }

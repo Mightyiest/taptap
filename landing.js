@@ -277,37 +277,33 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener('mouseleave', release);
   });
 
-  // Mouse click test buttons
+  // Mouse click test buttons (with realistic press-down & release upstroke)
   const mLeft = document.getElementById('demoMouseLeft');
   const mMid = document.getElementById('demoMouseMid');
   const mRight = document.getElementById('demoMouseRight');
 
-  if (mLeft) {
-    mLeft.addEventListener('mousedown', () => {
-      mLeft.classList.add('pressed');
-      playKeyAction('MouseLeft');
+  [
+    { el: mLeft, code: 'MouseLeft' },
+    { el: mMid, code: 'MouseMiddle' },
+    { el: mRight, code: 'MouseRight' }
+  ].forEach(({ el, code }) => {
+    if (!el) return;
+    let isPressed = false;
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isPressed = true;
+      el.classList.add('pressed');
+      playKeyAction(code, false);
     });
-    mLeft.addEventListener('mouseup', () => mLeft.classList.remove('pressed'));
-    mLeft.addEventListener('mouseleave', () => mLeft.classList.remove('pressed'));
-  }
-
-  if (mMid) {
-    mMid.addEventListener('mousedown', () => {
-      mMid.classList.add('pressed');
-      playKeyAction('MouseMiddle');
-    });
-    mMid.addEventListener('mouseup', () => mMid.classList.remove('pressed'));
-    mMid.addEventListener('mouseleave', () => mMid.classList.remove('pressed'));
-  }
-
-  if (mRight) {
-    mRight.addEventListener('mousedown', () => {
-      mRight.classList.add('pressed');
-      playKeyAction('MouseRight');
-    });
-    mRight.addEventListener('mouseup', () => mRight.classList.remove('pressed'));
-    mRight.addEventListener('mouseleave', () => mRight.classList.remove('pressed'));
-  }
+    const release = () => {
+      if (!isPressed) return;
+      isPressed = false;
+      el.classList.remove('pressed');
+      playKeyAction(code, true);
+    };
+    el.addEventListener('mouseup', release);
+    el.addEventListener('mouseleave', release);
+  });
 
   // --- 6. SPATIAL SLIDERS & CONTROLS ---
   const rngWidth = document.getElementById('demoRngWidth');

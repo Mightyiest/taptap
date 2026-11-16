@@ -21,6 +21,12 @@ pub struct DecodedSample {
     pub sample_rate: u32,
 }
 
+#[derive(Clone, Debug)]
+pub struct MouseProfile {
+    pub down: DecodedSample,
+    pub up: DecodedSample,
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct KeyboardPack {
     pub by_category: HashMap<String, Vec<DecodedSample>>,
@@ -139,8 +145,15 @@ fn resolve_key_token(token: &str) -> &'static str {
     }
 }
 
-fn resolve_mouse_token(token: &str) -> &str {
-    match token {
+fn resolve_mouse_token(token: &str) -> (&str, Option<bool>) {
+    let (base, is_up) = if let Some(b) = token.strip_suffix("_d") {
+        (b, Some(false))
+    } else if let Some(b) = token.strip_suffix("_u") {
+        (b, Some(true))
+    } else {
+        (token, None)
+    };
+    let name = match base {
         "m01" => "Bloody V8",
         "m02" => "Glorious Model O",
         "m03" => "IntelliMouse Optical USB and PS2 Compatible",
@@ -150,6 +163,146 @@ fn resolve_mouse_token(token: &str) -> &str {
         "m07" => "Razer DeathAdder V2 Pro",
         "m08" => "Trust GXT 152",
         other => other,
+    };
+    (name, is_up)
+}
+
+/// Builds a realistic press-down (`down`) + spring-release (`up`) pair in RAM
+/// from a decoded mouse click buffer. Splits two-transient recordings cleanly or
+/// sculpts a lighter micro-switch rebound from single-transient samples.
+pub fn build_mouse_profile(sample: &DecodedSample) -> MouseProfile {
+    let pcm = &sample.samples;
+    if pcm.is_empty() {
+        return MouseProfile {
+            down: sample.clone(),
+            up: sample.clone(),
+        };
+    }
+
+    let sr = sample.sample_rate.max(8_000) as usize;
+    let block_len = ((sr * 3) / 1000).max(32);
+    let block_peaks: Vec<f32> = pcm
+        .chunks(block_len)
+        .map(|chunk| chunk.iter().fold(0.0_f32, |acc, &x| acc.max(x.abs())))
+        .collect();
+
+    let (b_peak1, &peak1_amp) = block_peaks
+        .iter()
+        .enumerate()
+        .max_by(|a, b| a.1.total_cmp(b.1))
+        .unwrap_or((0, &0.0));
+
+    if peak1_amp < 1e-5 {
+        return MouseProfile {
+            down: sample.clone(),
+            up: sample.clone(),
+        };
+    }
+
+    let min_sep_blocks = ((sr * 25) / 1000 / block_len).max(4);
+    if b_peak1 + min_sep_blocks < block_peaks.len() {
+        if let Some((rel_idx, &peak2_amp)) = block_peaks[b_peak1 + min_sep_blocks..]
+            .iter()
+            .enumerate()
+            .max_by(|a, b| a.1.total_cmp(b.1))
+        {
+            let b_peak2 = b_peak1 + min_sep_blocks + rel_idx;
+            let (rel_v, &valley_amp) = block_peaks[b_peak1..=b_peak2]
+                .iter()
+                .enumerate()
+                .min_by(|a, b| a.1.total_cmp(b.1))
+                .unwrap_or((0, &peak1_amp));
+
+            if peak2_amp >= peak1_amp * 0.22 && valley_amp <= peak2_amp * 0.45 {
+                let split_idx = ((b_peak1 + rel_v) * block_len).clamp(1, pcm.len() - 1);
+                let mut down_vec = pcm[..split_idx].to_vec();
+                let fade_out_len = ((sr * 4) / 1000).min(down_vec.len()).max(1);
+                let tail_start = down_vec.len() - fade_out_len;
+                for (i, s) in down_vec[tail_start..].iter_mut().enumerate() {
+                    let t = i as f32 / fade_out_len as f32;
+                    *s *= 1.0 - t;
+                }
+
+                let up_raw = &pcm[split_idx..];
+                let thresh = peak2_amp * 0.08;
+                let trim_start = up_raw
+                    .iter()
+                    .position(|x| x.abs() >= thresh)
+                    .unwrap_or(0)
+                    .saturating_sub((sr * 2) / 1000);
+                let mut up_vec = up_raw[trim_start..].to_vec();
+                let fade_in_len = ((sr * 2) / 1000).min(up_vec.len()).max(1);
+                for (i, s) in up_vec[..fade_in_len].iter_mut().enumerate() {
+                    *s *= (i + 1) as f32 / fade_in_len as f32;
+                }
+
+                return MouseProfile {
+                    down: DecodedSample {
+                        samples: Arc::from(down_vec.into_boxed_slice()),
+                        sample_rate: sample.sample_rate,
+                    },
+                    up: DecodedSample {
+                        samples: Arc::from(up_vec.into_boxed_slice()),
+                        sample_rate: sample.sample_rate,
+                    },
+                };
+            }
+        }
+    }
+
+    // Single-transient sample: sculpt a crisp, lighter micro-switch release in RAM
+    let peak_sample_idx = pcm
+        .iter()
+        .enumerate()
+        .max_by(|a, b| a.1.abs().total_cmp(&b.1.abs()))
+        .map(|(i, _)| i)
+        .unwrap_or(0);
+    let pre_roll = (sr * 2) / 1000;
+    let start = peak_sample_idx.saturating_sub(pre_roll);
+    let max_up_len = ((sr * 52) / 1000).max(64);
+    let end = (start + max_up_len).min(pcm.len());
+    let slice = &pcm[start..end];
+
+    let dt = 1.0 / (sr as f32);
+    let rc = 1.0 / (2.0 * std::f32::consts::PI * 420.0);
+    let hp_alpha = rc / (rc + dt);
+    let mut prev_x = 0.0_f32;
+    let mut prev_y = 0.0_f32;
+    let fade_in = ((sr * 2) / 1000).min(slice.len()).max(1);
+    let dur = slice.len().max(1) as f32;
+
+    let mut up_vec = Vec::with_capacity(slice.len());
+    let mut max_up = 0.0_f32;
+    for (i, &x) in slice.iter().enumerate() {
+        let y = hp_alpha * (prev_y + x - prev_x);
+        prev_x = x;
+        prev_y = y;
+
+        let t_norm = i as f32 / dur;
+        let env = (-4.2 * t_norm).exp() * (1.0 - t_norm * t_norm);
+        let attack = if i < fade_in {
+            (i + 1) as f32 / fade_in as f32
+        } else {
+            1.0
+        };
+        let shaped = y * env * attack;
+        max_up = max_up.max(shaped.abs());
+        up_vec.push(shaped);
+    }
+
+    if max_up > 1e-6 {
+        let norm = (peak1_amp * 0.85) / max_up;
+        for s in &mut up_vec {
+            *s *= norm;
+        }
+    }
+
+    MouseProfile {
+        down: sample.clone(),
+        up: DecodedSample {
+            samples: Arc::from(up_vec.into_boxed_slice()),
+            sample_rate: sample.sample_rate,
+        },
     }
 }
 
@@ -329,7 +482,7 @@ pub fn embedded_vault_bytes(filename: &str) -> Option<&'static [u8]> {
 pub struct VaultCache {
     vault_dir: PathBuf,
     keyboard_packs: HashMap<String, Arc<KeyboardPack>>,
-    mouse_samples: HashMap<String, DecodedSample>,
+    mouse_profiles: HashMap<String, MouseProfile>,
     mouse_loaded: bool,
 }
 
@@ -338,7 +491,7 @@ impl VaultCache {
         Self {
             vault_dir,
             keyboard_packs: HashMap::new(),
-            mouse_samples: HashMap::new(),
+            mouse_profiles: HashMap::new(),
             mouse_loaded: false,
         }
     }
@@ -413,6 +566,9 @@ impl VaultCache {
         };
 
         let (manifest, data_base) = parse_vault_container(bytes)?;
+        let mut explicit_parts: HashMap<String, (Option<DecodedSample>, Option<DecodedSample>)> =
+            HashMap::new();
+
         for (token, info) in manifest {
             let start = match data_base.checked_add(info.offset) {
                 Some(v) => v,
@@ -428,9 +584,29 @@ impl VaultCache {
 
             let raw = descramble_bytes(&bytes[start..end]);
             if let Ok(sample) = decode_audio_bytes(raw, info.mime.as_deref()) {
-                let model_name = resolve_mouse_token(&token).to_string();
-                self.mouse_samples.insert(model_name, sample.clone());
-                self.mouse_samples.insert(token, sample);
+                let (model_name, explicit_up) = resolve_mouse_token(&token);
+                let model_name = model_name.to_string();
+                match explicit_up {
+                    Some(false) => {
+                        explicit_parts.entry(model_name).or_default().0 = Some(sample);
+                    }
+                    Some(true) => {
+                        explicit_parts.entry(model_name).or_default().1 = Some(sample);
+                    }
+                    None => {
+                        let profile = build_mouse_profile(&sample);
+                        self.mouse_profiles.insert(model_name, profile.clone());
+                        self.mouse_profiles.insert(token, profile);
+                    }
+                }
+            }
+        }
+
+        for (model_name, (down_opt, up_opt)) in explicit_parts {
+            if let Some(down) = down_opt {
+                let up = up_opt.unwrap_or_else(|| build_mouse_profile(&down).up);
+                self.mouse_profiles
+                    .insert(model_name, MouseProfile { down, up });
             }
         }
 
@@ -438,11 +614,11 @@ impl VaultCache {
         Ok(())
     }
 
-    pub fn get_mouse_sample(&mut self, mouse_pack: &str) -> Option<DecodedSample> {
+    pub fn get_mouse_profile(&mut self, mouse_pack: &str) -> Option<MouseProfile> {
         let _ = self.ensure_mouse_vault();
-        self.mouse_samples
+        self.mouse_profiles
             .get(mouse_pack)
-            .or_else(|| self.mouse_samples.get("Bloody V8"))
+            .or_else(|| self.mouse_profiles.get("Bloody V8"))
             .cloned()
     }
 }
@@ -514,12 +690,16 @@ mod tests {
             "Trust GXT 152",
         ];
         for model in mouse_models {
-            let sample = cache
-                .get_mouse_sample(model)
-                .unwrap_or_else(|| panic!("Missing decoded mouse sample for {model}"));
+            let profile = cache
+                .get_mouse_profile(model)
+                .unwrap_or_else(|| panic!("Missing decoded mouse profile for {model}"));
             assert!(
-                !sample.samples.is_empty(),
-                "Empty mouse PCM buffer for {model}"
+                !profile.down.samples.is_empty(),
+                "Empty mouse down PCM buffer for {model}"
+            );
+            assert!(
+                !profile.up.samples.is_empty(),
+                "Empty mouse up PCM buffer for {model}"
             );
         }
     }
@@ -533,7 +713,8 @@ mod tests {
                 .unwrap_or_else(|e| panic!("Standalone embedded load failed for {switch_id}: {e}"));
             assert!(!pack.by_token.is_empty());
         }
-        assert!(cache.get_mouse_sample("Bloody V8").is_some());
+        let mouse = cache.get_mouse_profile("Bloody V8").expect("mouse profile");
+        assert!(!mouse.down.samples.is_empty() && !mouse.up.samples.is_empty());
     }
 
     #[test]

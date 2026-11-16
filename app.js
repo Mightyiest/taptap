@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const infoPackName = document.getElementById('infoPackName');
   const infoMousePackName = document.getElementById('infoMousePackName');
   const chkUpstroke = document.getElementById('chkUpstroke');
+  const chkMouseUpstroke = document.getElementById('chkMouseUpstroke');
   const chkCursorTracking = document.getElementById('chkCursorTracking');
   const chkElevation = document.getElementById('chkElevation');
   const chkRightClickMenu = document.getElementById('chkRightClickMenu');
@@ -379,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
       activeKeyboardPack: audio.activeKeyboardPack || 'pulse',
       activeMousePack: audio.activeMousePack || 'Bloody V8',
       playUpstrokes: chkUpstroke ? chkUpstroke.checked : true,
+      playMouseUpstrokes: chkMouseUpstroke ? chkMouseUpstroke.checked : true,
       dynamicCursorTracking: chkCursorTracking ? chkCursorTracking.checked : true,
       verticalElevation: chkElevation ? chkElevation.checked : true,
       spatialMode: audio.mode || 'hrtf',
@@ -434,6 +436,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const upstrokes = (typeof settings.playUpstrokes === 'boolean') ? settings.playUpstrokes : true;
     if (chkUpstroke) chkUpstroke.checked = upstrokes;
     if (audio) audio.setUpstrokes(upstrokes);
+
+    const mouseUpstrokes = (typeof settings.playMouseUpstrokes === 'boolean') ? settings.playMouseUpstrokes : true;
+    if (chkMouseUpstroke) chkMouseUpstroke.checked = mouseUpstrokes;
+    if (audio) audio.setMouseUpstrokes(mouseUpstrokes);
 
     // 6. Cursor Tracking
     const cursorTrk = (typeof settings.dynamicCursorTracking === 'boolean') ? settings.dynamicCursorTracking : true;
@@ -941,14 +947,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function onActionUp(code, playAudio = true, dedupe = false) {
+  function onActionUp(code, playAudio = true, dedupe = false, customPan = null) {
     const isMouse = typeof code === 'string' && code.startsWith('Mouse');
     if (!isMouse) {
       if (!activeKeys.has(code)) return;
       activeKeys.delete(code);
     }
 
-    audio.trigger(code, true, null, playAudio, dedupe); // Upstroke audio
+    audio.trigger(code, true, customPan, playAudio, dedupe); // Upstroke audio
 
     // STEALTH MODE: If window is minimized or hidden, bypass DOM lookups
     if (!isWindowVisible) return;
@@ -1070,8 +1076,14 @@ document.addEventListener('DOMContentLoaded', () => {
       onActionDown(code, code.replace('Mouse', ''), pan);
     });
 
-    ipc.on('global-mouseup', (event, { code }) => {
-      onActionUp(code);
+    ipc.on('global-mouseup', (event, { code, x }) => {
+      let pan = null;
+      if (typeof x === 'number' && audio && audio.dynamicCursorTracking) {
+        const screenW = (window.screen && window.screen.width) ? window.screen.width : 1920;
+        const clampedX = Math.max(0, Math.min(screenW, x));
+        pan = (clampedX / screenW - 0.5) * 2.0;
+      }
+      onActionUp(code, true, false, pan);
     });
   }
 
@@ -1093,16 +1105,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- 7. MOUSE CLICK ZONE (SILHOUETTE & PILL BUTTONS) ---
+  const activeMouseZones = new Set();
   function bindMouseZone(elements, code, label, panBias, preventContext = false) {
     elements.filter(Boolean).forEach(el => {
       el.addEventListener('mousedown', (e) => {
         e.preventDefault();
+        activeMouseZones.add(el);
         setMouseButtonsPressed(code, true);
         onActionDown(code, label, getMousePan(panBias));
       });
       const release = () => {
+        if (!activeMouseZones.has(el)) return;
+        activeMouseZones.delete(el);
         setMouseButtonsPressed(code, false);
-        onActionUp(code);
+        onActionUp(code, true, false, getMousePan(panBias));
       };
       el.addEventListener('mouseup', release);
       el.addEventListener('mouseleave', release);
@@ -1440,6 +1456,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (chkUpstroke) {
     chkUpstroke.addEventListener('change', (e) => {
       audio.setUpstrokes(e.target.checked);
+      saveSettings();
+    });
+  }
+
+  if (chkMouseUpstroke) {
+    chkMouseUpstroke.addEventListener('change', (e) => {
+      audio.setMouseUpstrokes(e.target.checked);
       saveSettings();
     });
   }

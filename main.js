@@ -416,7 +416,7 @@ if (gotSingleInstanceLock) {
         let code = 'MouseLeft';
         if (e.button === 2) code = 'MouseRight';
         else if (e.button === 3) code = 'MouseMiddle';
-        mainWindow.webContents.send('global-mouseup', { code });
+        mainWindow.webContents.send('global-mouseup', { code, x: e.x, y: e.y });
       }
     });
 

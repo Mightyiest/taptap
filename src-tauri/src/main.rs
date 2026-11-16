@@ -57,6 +57,8 @@ pub struct SyncAudioConfigArgs {
     pub active_keyboard_pack: String,
     pub active_mouse_pack: String,
     pub play_upstrokes: bool,
+    #[serde(default)]
+    pub play_mouse_upstrokes: Option<bool>,
     pub dynamic_cursor_tracking: bool,
     pub vertical_elevation: bool,
     pub spatial_mode: String,
@@ -285,6 +287,9 @@ fn sync_audio_config(args: SyncAudioConfigArgs, state: State<'_, AppState>) {
     settings.active_keyboard_pack = args.active_keyboard_pack;
     settings.active_mouse_pack = args.active_mouse_pack;
     settings.play_upstrokes = args.play_upstrokes;
+    if let Some(pmu) = args.play_mouse_upstrokes {
+        settings.play_mouse_upstrokes = pmu;
+    }
     settings.dynamic_cursor_tracking = args.dynamic_cursor_tracking;
     settings.vertical_elevation = args.vertical_elevation;
     settings.spatial_mode = args.spatial_mode;
@@ -555,6 +560,8 @@ pub fn run() {
 
             // Start native Win32 keyboard/mouse hooks + Ctrl+Shift+M global shortcut
             let hook_app_handle = app.handle().clone();
+            let pressed_external_mouse: Arc<Mutex<std::collections::HashSet<&'static str>>> =
+                Arc::new(Mutex::new(std::collections::HashSet::with_capacity(4)));
             start_hooks(move |evt| {
                 let state = hook_app_handle.state::<AppState>();
                 match evt {
@@ -589,8 +596,10 @@ pub fn run() {
                     HookEvent::MouseDown { code, x, y } => {
                         // Skip clicks inside Taptap's own window so DOM handles virtual keycaps/mouse pad cleanly
                         if is_cursor_inside_own_window(x, y) {
+                            pressed_external_mouse.lock().remove(code);
                             return;
                         }
+                        pressed_external_mouse.lock().insert(code);
                         let custom_pan = if state.audio.config_snapshot().dynamic_cursor_tracking {
                             Some(compute_cursor_x_pan(x))
                         } else {
@@ -610,17 +619,22 @@ pub fn run() {
                         }
                     }
                     HookEvent::MouseUp { code, x, y } => {
-                        if is_cursor_inside_own_window(x, y) {
+                        if !pressed_external_mouse.lock().remove(code) {
                             return;
                         }
-                        state.audio.trigger(code, true, None);
+                        let custom_pan = if state.audio.config_snapshot().dynamic_cursor_tracking {
+                            Some(compute_cursor_x_pan(x))
+                        } else {
+                            None
+                        };
+                        let res = state.audio.trigger_checked(code, true, custom_pan, true);
                         if let Some(win) = hook_app_handle.get_webview_window("main") {
                             let _ = win.emit(
                                 "taptap://input-event",
                                 InputEventPayload {
                                     kind: "mouseup",
                                     code: code.to_string(),
-                                    pan: None,
+                                    pan: res.map(|r| r.pan),
                                     row: None,
                                 },
                             );
