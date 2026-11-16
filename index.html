@@ -56,7 +56,7 @@
   <section class="hero-section">
     <div class="site-container">
       <div class="hero-pill-badge">
-        <span>✦ Now Written in Rust! • 2.9 MB Tray RAM (v2.0.0) ✦</span>
+        <span>✦ Now Written in Rust! • 2.9 MB Background Tray RAM (v2.0.0) ✦</span>
       </div>
 
       <h1 class="hero-title">
@@ -64,7 +64,7 @@
       </h1>
 
       <p class="hero-subtitle">
-        Transform every keystroke and tactile click into a rich, three-dimensional acoustic soundstage. <strong>Now written in native Rust!</strong> — slashing stealth tray RAM from <strong>70–100+ MB down to 2.9 MB</strong> with zero Chromium or Electron bloat, plus live Web Audio HRTF right here in your browser.
+        Transform every keystroke and tactile click into a rich, three-dimensional acoustic soundstage. <strong>Now written in native Rust!</strong> Runs at <strong>2.9 MB RAM in the background tray</strong> (spawning an on-demand <strong>~150 MB WebView2 UI</strong> only while the window is open, then destroying it on close), plus live Web Audio HRTF right here in your browser.
       </p>
 
       <div class="hero-cta-group">
@@ -81,15 +81,15 @@
       <div class="hero-metrics-bar">
         <div class="hero-metric-item">
           <span class="hero-metric-val">2.9 MB</span>
-          <span class="hero-metric-lbl">Tray RAM (vs 100+ MB)</span>
+          <span class="hero-metric-lbl">Background Tray RAM</span>
+        </div>
+        <div class="hero-metric-item">
+          <span class="hero-metric-val">~150 MB</span>
+          <span class="hero-metric-lbl">WebView2 UI (When Open)</span>
         </div>
         <div class="hero-metric-item">
           <span class="hero-metric-val">4.71 MB</span>
           <span class="hero-metric-lbl">Setup (vs 74.7 MB)</span>
-        </div>
-        <div class="hero-metric-item">
-          <span class="hero-metric-val">0</span>
-          <span class="hero-metric-lbl">WebView Tray Procs</span>
         </div>
         <div class="hero-metric-item">
           <span class="hero-metric-val">22 + 8</span>
@@ -106,21 +106,21 @@
         <span class="rust-highlight-pill">Now Written in Rust! • v2.0.0</span>
         <h2 class="section-title">Tiny Hardware Footprint. Massive Difference.</h2>
         <p class="section-desc">
-          We rebuilt Taptap's desktop engine from the ground up in native <strong>Rust + Tauri v2</strong>, removing the heavy Electron &amp; Chromium runtime so it runs practically invisible while you game, code, or stream.
+          We rebuilt Taptap's core engine from the ground up in native <strong>Rust + Tauri v2</strong>. Opening the window spawns a temporary <strong>~150 MB WebView2</strong> process to render the UI—and closing via <strong>—</strong> or <strong>×</strong> destroys WebView2 completely, dropping background tray usage to <strong>2.9 MB RAM</strong>.
         </p>
       </div>
 
       <!-- Top 3 Hardware Resource Cards -->
       <div class="rust-resource-grid">
         <div class="rust-resource-card featured">
-          <span class="rust-res-kicker">Idle Hardware Memory (Stealth Tray)</span>
+          <span class="rust-res-kicker">Background / Stealth Tray RAM</span>
           <div class="rust-res-stat-row">
             <span class="rust-res-new">2.9 MB RAM</span>
             <span class="rust-res-old">70–100+ MB</span>
           </div>
-          <span class="rust-res-badge">~96% Less RAM Usage</span>
+          <span class="rust-res-badge">~96% Less Background RAM</span>
           <p class="rust-res-desc">
-            Closing the Taptap window tears down WebView2 completely, leaving a single native Rust process running at just <strong>2.9 MB</strong> in your system tray.
+            Closing via <strong>—</strong> or <strong>×</strong> destroys the ~150 MB WebView2 UI completely, leaving a single native Rust process at <strong>2.9 MB</strong> in your system tray.
           </p>
         </div>
 
@@ -142,18 +142,22 @@
             <span class="rust-res-new">Native WASAPI</span>
             <span class="rust-res-old">Chromium + IPC</span>
           </div>
-          <span class="rust-res-badge">0 Background Browser Processes</span>
+          <span class="rust-res-badge">0 WebView Processes in Tray</span>
           <p class="rust-res-desc">
-            Lock-free 64-voice Rust audio mixer (<code>cpal</code> + <code>symphonia</code>) with direct Win32 <code>WH_KEYBOARD_LL</code> hooks—no V8 garbage-collection spikes.
+            Lock-free 64-voice Rust audio mixer (<code>cpal</code> + <code>symphonia</code>) &amp; Win32 <code>WH_KEYBOARD_LL</code> hooks run natively in Rust—WebView2 (~150 MB) only loads while the UI is open.
           </p>
         </div>
+      </div>
+
+      <div class="rust-honesty-note">
+        <strong>Transparent RAM Breakdown:</strong> Taptap's native Rust audio &amp; input engine uses <strong>2.9 MB RAM</strong> in the background system tray. Opening the visual Soundstage &amp; Settings window spawns Microsoft Edge WebView2 (<strong>~150 MB</strong>) to render the interface; clicking <strong>—</strong> or <strong>×</strong> destroys those WebView2 processes so Taptap drops right back to <strong>2.9 MB</strong>.
       </div>
 
       <!-- Side-by-Side Electron vs Rust Comparison Table -->
       <div class="rust-diff-table-card">
         <div class="rust-diff-table-header">
           <h3>Electron (v1.x) vs. Native Rust (v2.0.0)</h3>
-          <span class="rust-diff-table-sub">Same Luxury 3D Audio • 96% Lighter Footprint</span>
+          <span class="rust-diff-table-sub">Transparent Hardware Breakdown • Tray vs. Open UI</span>
         </div>
         <div class="rust-diff-scroll">
           <table class="rust-diff-table">
@@ -167,15 +171,21 @@
             </thead>
             <tbody>
               <tr>
-                <td class="rust-col-metric">Stealth Tray RAM Usage</td>
-                <td class="rust-col-old">70 MB – 100+ MB resident</td>
-                <td class="rust-col-new">2.9 MB private working set</td>
-                <td><span class="rust-gain-pill">~96% Less RAM</span></td>
+                <td class="rust-col-metric">Stealth Tray / Background RAM</td>
+                <td class="rust-col-old">70 MB – 100+ MB always resident</td>
+                <td class="rust-col-new">2.9 MB private working set (UI destroyed)</td>
+                <td><span class="rust-gain-pill">~96% Less Tray RAM</span></td>
+              </tr>
+              <tr>
+                <td class="rust-col-metric">Active UI Window RAM</td>
+                <td class="rust-col-old">120 MB – 180+ MB (bundled Chromium)</td>
+                <td class="rust-col-new">~150 MB WebView2 (only while UI is open)</td>
+                <td><span class="rust-gain-pill">Freed on Close</span></td>
               </tr>
               <tr>
                 <td class="rust-col-metric">Background Browser Processes</td>
-                <td class="rust-col-old">Chromium Main + Renderer + GPU + Node</td>
-                <td class="rust-col-new">0 WebView2 processes when minimized</td>
+                <td class="rust-col-old">Always running (Main + Renderer + GPU + Node)</td>
+                <td class="rust-col-new">0 in tray • Spawns WebView2 only for UI</td>
                 <td><span class="rust-gain-pill">Zero Tray Bloat</span></td>
               </tr>
               <tr>
@@ -537,7 +547,7 @@
           </div>
           <h3>2.9 MB Stealth Tray Mode</h3>
           <p>
-            Closing the window completely destroys the UI layer, cutting idle memory from <strong>70–100+ MB</strong> down to <strong>2.9 MB RAM</strong> while keeping audio and <kbd>Ctrl+Shift+M</kbd> mute live.
+            Spawns a ~150 MB WebView2 UI only while configuring settings. Closing via <strong>—</strong> or <strong>×</strong> destroys the UI layer completely, dropping background memory to <strong>2.9 MB RAM</strong> while keeping audio and <kbd>Ctrl+Shift+M</kbd> mute live.
           </p>
         </div>
 
@@ -714,7 +724,7 @@
         <span class="section-tag">Get Taptap v2.0.0</span>
         <h2 class="section-title">Download Native Rust Companion</h2>
         <p class="section-desc">
-          Now written in native Rust + Tauri v2 — 2.9 MB tray RAM (down from 70–100+ MB) and 93% smaller download sizes with all 22 switch packs &amp; 8 mouse profiles embedded.
+          Now written in native Rust + Tauri v2 — 2.9 MB background tray RAM (~150 MB on-demand WebView2 while the UI is open) and 93% smaller download sizes with all 22 switch packs &amp; 8 mouse profiles embedded.
         </p>
       </div>
 
@@ -724,12 +734,12 @@
           <span class="v2-bench-value"><span class="v2-bench-old">70–100+ MB</span> 2.9 MB</span>
         </div>
         <div class="v2-bench-item">
-          <span class="v2-bench-label">Setup Installer</span>
-          <span class="v2-bench-value"><span class="v2-bench-old">74.7 MB</span> 4.71 MB</span>
+          <span class="v2-bench-label">UI Window (When Open)</span>
+          <span class="v2-bench-value">~150 MB WebView2</span>
         </div>
         <div class="v2-bench-item">
-          <span class="v2-bench-label">Portable Single-File</span>
-          <span class="v2-bench-value"><span class="v2-bench-old">74.4 MB</span> 11.07 MB</span>
+          <span class="v2-bench-label">Setup / Portable</span>
+          <span class="v2-bench-value"><span class="v2-bench-old">74.7 MB</span> 4.71 / 11.07 MB</span>
         </div>
         <div class="v2-bench-item">
           <span class="v2-bench-label">Audio & Input Core</span>
@@ -744,7 +754,7 @@
           <div>
             <span class="download-meta-pill">NSIS Setup • 4.71 MB</span>
             <h3>Windows Installer</h3>
-            <p>Full Windows x64 setup with Start Menu integration, clean uninstaller, and 2.9 MB background tray mode.</p>
+            <p>Full Windows x64 setup with Start Menu integration, clean uninstaller, 2.9 MB background tray mode, and on-demand WebView2 UI (~150 MB when open).</p>
           </div>
           <a href="https://github.com/Mightyiest/taptap/releases/latest/download/Taptap_2.0.0_x64-setup.exe" class="btn-download-action">
             <span>Download Setup (4.71 MB)</span>

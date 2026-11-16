@@ -1187,6 +1187,24 @@ h1, h2, h3, h4, .serif-heading {
   line-height: 1.55;
 }
 
+.rust-honesty-note {
+  max-width: 980px;
+  margin: 0 auto 28px;
+  padding: 16px 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-main);
+  border-left: 4px solid var(--accent-burgundy);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.rust-honesty-note strong {
+  color: var(--text-main);
+}
+
 .rust-diff-table-card {
   max-width: 980px;
   margin: 0 auto;
